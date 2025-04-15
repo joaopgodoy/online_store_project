@@ -1,0 +1,102 @@
+# 🛒 Projeto: Loja Online
+
+### Grupo:
+- João Pedro Alves Notari Godoy – NUSP: 14582076  
+- Ayrton da Costa Ganem Filho – NUSP: 2345678  
+- Pedro Louro Fernandes – NUSP: 3456789  
+
+---
+
+## 📌 1. Requisitos
+
+### Usuários:
+- **Clientes**: compram produtos.
+- **Administradores**: gerenciam produtos, clientes e outros admins.
+
+### Requisitos principais:
+- Login (cliente/admin)
+- Cadastro de produtos (nome, id, foto, descrição, preço, estoque, vendidos)
+- Cadastro de clientes e admins (nome, id, email, telefone, endereço)
+- Carrinho de compras (cliente escolhe produto, quantidade, compra com cartão (qualquer número aceito))
+- CRUD de produtos (admin)
+- Funcionalidade específica: [**exemplo**: "destaque da semana" com produtos promocionais]
+
+---
+
+## 📝 2. Descrição do Projeto
+
+O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS3 e JavaScript. Na primeira fase, desenvolvemos **mockups estáticos** para planejar o visual e a navegação do sistema.
+
+### Funcionalidades planejadas:
+- Tela inicial com login
+- Tela de listagem de produtos para clientes
+- Tela administrativa para cadastro de produtos
+- Navegação SPA simulada entre as telas
+
+### Informações salvas no servidor (futuramente):
+- Usuários (admin e clientes)
+- Produtos (detalhes e estoque)
+- Pedidos realizados
+
+---
+
+## 🧭 3. Diagrama de Navegação
+
+```
+[ Início/Login ]
+       ↓
+[ Cliente Logado ] → Ver produtos → Adicionar ao carrinho → Finalizar compra
+       ↓
+[ Administrador Logado ] → Cadastrar produtos → Atualizar estoque
+```
+
+*(Diagrama pode ser substituído por imagem ou link para Figma/Marvel)*
+
+---
+
+## 💬 4. Comentários sobre o código
+
+Sem código funcional no momento — apenas HTML/CSS estáticos.
+
+---
+
+## 🧪 5. Plano de Testes
+
+Pretendemos usar Postman para testar o backend futuramente.  
+Na fase atual, apenas validamos visualmente os elementos HTML/CSS.
+
+---
+
+## ✅ 6. Resultados dos Testes
+
+Sem testes automatizados até o momento.
+
+---
+
+## 🛠 7. Procedimentos de Build
+
+Para visualizar o projeto localmente:
+
+1. Baixe o projeto.
+2. Abra o arquivo `index.html` no navegador.
+3. Use os links de navegação nas páginas para acessar os mockups.
+
+---
+
+## ⚠️ 8. Problemas
+
+Nenhum problema encontrado até agora.
+
+---
+
+## 💡 9. Comentários
+
+Estamos abertos a sugestões para melhorar o layout, acessibilidade e usabilidade das interfaces.
+
+---
+
+## 🔗 Mockups
+
+- [`index.html`](index.html): Tela inicial com login
+- [`produtos.html`](produtos.html): Tela de cliente vendo produtos
+- [`admin.html`](admin.html): Tela administrativa para gerenciar produtos
