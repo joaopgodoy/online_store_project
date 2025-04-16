@@ -2,7 +2,7 @@
 
 ### Grupo:
 - João Pedro Alves Notari Godoy – NUSP: 14582076  
-- Ayrton da Costa Ganem Filho – NUSP: 2345678  
+- Ayrton da Costa Ganem Filho – NUSP: 14560190  
 - Pedro Louro Fernandes – NUSP: 13672446  
 
 ---
