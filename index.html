@@ -12,17 +12,17 @@
 
     <div class="container">
         <h2>Login</h2>
-        <form>
+        <form action="/login" method="POST">
             <label for="email">Email:</label>
-            <input type="email" id="email">
+            <input type="text" id="email" name="email" required>
 
             <label for="senha">Senha:</label>
-            <input type="password" id="senha">
+            <input type="password" id="senha" name="senha" required>
 
             <label for="tipo">Tipo de usuário:</label>
-            <select id="tipo">
-                <option>Cliente</option>
-                <option>Administrador</option>
+            <select id="tipo" name="tipo">
+                <option value="cliente">Cliente</option>
+                <option value="administrador">Administrador</option>
             </select>
 
             <button type="submit">Entrar</button>
