@@ -1,0 +1,114 @@
+<!-- cart.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho – Loja do Condomínio</title>
+  <link rel="stylesheet" href="index.css"/>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="logo">Loja do Condomínio</div>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="alimentos.html">Alimentos e Bebidas</a>
+        <a href="higiene.html">Higiene e Cuidados</a>
+        <a href="limpeza.html">Limpeza</a>
+        <a href="farmacia.html">Farmácia e Bem-estar</a>
+      </nav>
+      <div class="header-actions">
+        <a href="login.html" class="icon">👤</a>
+        <a href="cart.html" class="icon">🛒<span class="cart-badge">2</span></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- CARRINHO -->
+  <main class="cart-page">
+    <div class="container">
+      <h2>Seu Carrinho</h2>
+      <div class="cart-content">
+
+        <div class="cart-items">
+          <div class="cart-item card">
+            <div class="item-image"></div>
+            <div class="item-details">
+              <h3>Água Mineral 500ml</h3>
+              <span class="category">Alimentos e Bebidas</span>
+              <span class="price">R$ 2.50</span>
+            </div>
+            <div class="item-controls">
+              <button class="qty-btn">−</button>
+              <span class="qty">1</span>
+              <button class="qty-btn">+</button>
+              <button class="delete-btn">🗑️</button>
+            </div>
+          </div>
+
+          <div class="cart-item card">
+            <div class="item-image"></div>
+            <div class="item-details">
+              <h3>Sabão em Pó</h3>
+              <span class="category">Limpeza</span>
+              <span class="price">R$ 15.90</span>
+            </div>
+            <div class="item-controls">
+              <button class="qty-btn">−</button>
+              <span class="qty">2</span>
+              <button class="qty-btn">+</button>
+              <button class="delete-btn">🗑️</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="order-summary card">
+          <h3>Resumo do Pedido</h3>
+          <p class="summary-text">Revise os itens do seu carrinho</p>
+          <ul class="summary-list">
+            <li><span>1x Água Mineral 500ml</span><span>R$ 2.50</span></li>
+            <li><span>2x Sabão em Pó</span><span>R$ 31.80</span></li>
+          </ul>
+          <div class="summary-total">
+            <span>Total</span>
+            <span>R$ 34.30</span>
+          </div>
+          <a href="#" class="btn full-width">Finalizar Compra</a>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h3>Loja do Condomínio</h3>
+        <p>Tudo o que você precisa sem sair do condomínio. Entrega rápida e prática!</p>
+      </div>
+      <div class="footer-links">
+        <h4>Links Rápidos</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="categorias.html">Categorias</a></li>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="cadastro.html">Cadastro</a></li>
+        </ul>
+      </div>
+      <div class="footer-contact">
+        <h4>Contato</h4>
+        <p>Email: contato@lojadocondominio.com.br</p>
+        <p>Tel: (11) 99999-9999</p>
+      </div>
+    </div>
+    <div class="footer-copy">
+      <p>© 2025 Loja do Condomínio. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
