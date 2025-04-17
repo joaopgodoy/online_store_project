@@ -97,6 +97,6 @@ Estamos abertos a sugestões para melhorar o layout, acessibilidade e usabilidad
 
 ## 🔗 Mockups
 
-- [`index.html`](index.html): Tela inicial com login
-- [`produtos.html`](produtos.html): Tela de cliente vendo produtos
-- [`admin.html`](admin.html): Tela administrativa para gerenciar produtos
+- [`index.html`](index.html): Tela inicial da loja, com principais produtos
+- [`login.html`](login.html): Tela de login do usuário
+- [`cart.html`](cart.html): Tela de carrinho para ver produtos escolhidos e finalizar a compra
