@@ -42,13 +42,8 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 
 ## 🧭 3. Diagrama de Navegação
 
-```
-[ Início/Login ]
-       ↓
-[ Cliente Logado ] → Ver produtos → Adicionar ao carrinho → Finalizar compra
-       ↓
-[ Administrador Logado ] → Cadastrar produtos → Atualizar estoque
-```
+![diagrama_navegacao](diagramas/diagrama_navegacao.jpeg)
+
 
 *(Diagrama pode ser substituído por imagem ou link para Figma/Marvel)*
 
