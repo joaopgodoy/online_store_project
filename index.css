@@ -132,8 +132,12 @@ header {
 }
 .card-image {
   width: 100%;
-  height: 150px;
-  background: #eee;
+  height: 300px;
+}
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .card-content {
   padding: 1rem;
