@@ -45,11 +45,41 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 ![diagrama_navegacao](diagramas/diagrama_navegacao_separado.jpeg)
 
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+graph TD
+  Home[Home]
+  Comidas[Comidas e Bebidas]
+  Higiene[Higiene e Cuidados Pessoais]
+  Limpeza[Limpeza]
+  Farmacia[Farmácia]
+  Produto[Produto]
+  Carrinho[Carrinho]
+  Login[Login]
+  Usuario[Usuário]
+  Admin[Admin]
+  Dashboard[Dashboard do Admin]
+
+  %% Ligações entre as páginas
+  Home <--> Comidas
+  Home <--> Higiene
+  Home <--> Limpeza
+  Home <--> Farmacia
+  Home <--> Carrinho
+  Home <--> Login
+
+  Comidas <--> Produto
+  Higiene <--> Produto
+  Limpeza <--> Produto
+  Farmacia <--> Produto
+
+  Produto <--> Carrinho
+  Produto <--> Login
+
+  Login <--> Usuario
+  Usuario <--> Carrinho
+
+  Login <--> Admin
+  Admin <--> Dashboard
+
 ```
 
 ---
