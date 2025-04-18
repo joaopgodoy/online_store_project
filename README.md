@@ -47,13 +47,13 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 ```mermaid
 graph TD;
     %% Seção: Loja
-    Home[<a href=''>Home</a>]
-    ComidasEBebidas[<a href=''>Comidas e Bebidas</a>]
-    HigieneCuidados[<a href=''>Higiene e Cuidados Pessoais</a>]
-    Limpeza[<a href=''>Limpeza</a>]
-    Farmacia[<a href=''>Farmácia</a>]
-    Produto[<a href=''>Produto</a>]
-    Carrinho[<a href=''>Carrinho</a>]
+    Home[Home]
+    ComidasEBebidas[Comidas e Bebidas]
+    HigieneCuidados[Higiene e Cuidados Pessoais]
+    Limpeza[Limpeza]
+    Farmacia[Farmácia]
+    Produto[Produto]
+    Carrinho[Carrinho]
 
     Home --> ComidasEBebidas
     Home --> HigieneCuidados
@@ -74,21 +74,20 @@ graph TD;
     Produto --> Carrinho
 
     %% Seção: Acesso
-    Login[<a href=''>Login</a>]
-    Usuario[<a href=''>Usuário</a>]
+    Login[Login]
+    Usuario[Usuário]
 
     Produto --> Login
     Login --> Usuario
     Usuario --> Carrinho
 
     %% Seção: Administração
-    Admin[<a href=''>Admin</a>]
-    DashboardAdmin[<a href=''>Dashboard do Admin</a>]
+    Admin[Admin]
+    DashboardAdmin[Dashboard do Admin]
 
     Login --> Admin
     Admin --> DashboardAdmin
 '''
-
 
 ---
 
