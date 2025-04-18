@@ -44,6 +44,50 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 
 ![diagrama_navegacao](diagramas/diagrama_navegacao_separado.jpeg)
 
+graph TD;
+    %% Seção: Loja
+    Home[<a href=''>Home</a>]
+    ComidasEBebidas[<a href=''>Comidas e Bebidas</a>]
+    HigieneCuidados[<a href=''>Higiene e Cuidados Pessoais</a>]
+    Limpeza[<a href=''>Limpeza</a>]
+    Farmacia[<a href=''>Farmácia</a>]
+    Produto[<a href=''>Produto</a>]
+    Carrinho[<a href=''>Carrinho</a>]
+
+    Home --> ComidasEBebidas
+    Home --> HigieneCuidados
+    Home --> Limpeza
+    Home --> Farmacia
+    Home --> Produto
+    Home --> Carrinho
+
+    ComidasEBebidas --> Produto
+    HigieneCuidados --> Produto
+    Limpeza --> Produto
+    Farmacia --> Produto
+
+    ComidasEBebidas --> Carrinho
+    HigieneCuidados --> Carrinho
+    Limpeza --> Carrinho
+    Farmacia --> Carrinho
+    Produto --> Carrinho
+
+    %% Seção: Acesso
+    Login[<a href=''>Login</a>]
+    Usuario[<a href=''>Usuário</a>]
+
+    Produto --> Login
+    Login --> Usuario
+    Usuario --> Carrinho
+
+    %% Seção: Administração
+    Admin[<a href=''>Admin</a>]
+    DashboardAdmin[<a href=''>Dashboard do Admin</a>]
+
+    Login --> Admin
+    Admin --> DashboardAdmin
+
+
 ---
 
 ## 💬 4. Comentários sobre o código
