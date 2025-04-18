@@ -42,8 +42,6 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 
 ## 🧭 3. Diagrama de Navegação
 
-![diagrama_navegacao](diagramas/diagrama_navegacao_separado.jpeg)
-
 ```mermaid
 graph TD
   Home[Home]
