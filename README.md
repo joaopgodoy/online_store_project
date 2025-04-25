@@ -45,7 +45,7 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 ```mermaid
 graph TD
   Home[Home]
-  Comidas[Comidas e Bebidas]
+  Alimentos[Alimentos e Bebidas]
   Higiene[Higiene e Cuidados Pessoais]
   Limpeza[Limpeza]
   Farmacia[Farmácia]
@@ -55,16 +55,18 @@ graph TD
   Usuario[Usuário]
   Admin[Admin]
   Dashboard[Dashboard do Admin]
+  PainelUsuarios[Painel de usuários]
+  PainelProdutos[Painel de produtos]
 
   %% Ligações
-  Home <--> Comidas
+  Home <--> Alimentos
   Home <--> Higiene
   Home <--> Limpeza
   Home <--> Farmacia
   Home <--> Carrinho
   Home <--> Login
 
-  Comidas <--> Produto
+  Alimentos <--> Produto
   Higiene <--> Produto
   Limpeza <--> Produto
   Farmacia <--> Produto
@@ -77,6 +79,9 @@ graph TD
 
   Login <--> Admin
   Admin <--> Dashboard
+
+  Dashboard <--> PainelUsuarios
+  Dashboard <--> PainelProdutos
 
   %% Links nos nós
   click Home "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/index_01.png" _blank
