@@ -12,8 +12,8 @@
 ## 📌 1. Requisitos
 
 ### Usuários:
-- **Clientes**: compram produtos.
-- **Administradores**: gerenciam produtos, clientes e outros admins.
+- **Clientes**: compram produtos
+- **Administradores**: gerenciam produtos, clientes e outros admins
 
 ### Requisitos principais:
 - Login (cliente/admin)
