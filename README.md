@@ -1,4 +1,6 @@
-# 🛒 Projeto: Loja Online
+# 🛒 Projeto: Mercado de Condomínio - Near Market
+
+![alt text](https://i.imgur.com/WVDQtfQ.jpeg)
 
 ### Grupo:
 - João Pedro Alves Notari Godoy – NUSP: 14582076  
@@ -19,7 +21,7 @@
 - Cadastro de clientes e admins (nome, id, email, telefone, endereço)
 - Carrinho de compras (cliente escolhe produto, quantidade, compra com cartão (qualquer número aceito))
 - CRUD de produtos (admin)
-- Funcionalidade específica: [**exemplo**: "destaque da semana" com produtos promocionais]
+- Funcionalidade específica: Código de segurança gerado para a retirada dos produtos presencialmente
 
 ---
 
@@ -30,7 +32,10 @@ O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS
 ### Funcionalidades planejadas:
 - Tela inicial com login
 - Tela de listagem de produtos para clientes
+- Telas individuais para cada categoria de produto (Farmácia, Alimentos, etc)
 - Tela administrativa para cadastro de produtos
+- Tela de carrinho com os produtos selecionados pelos clientes
+- Tela de pagamento e checkout dos produtos
 - Navegação SPA simulada entre as telas
 
 ### Informações salvas no servidor (futuramente):
@@ -125,7 +130,7 @@ Para visualizar o projeto localmente:
 
 1. Baixe o projeto.
 2. Abra o arquivo `index.html` no navegador.
-3. Use os links de navegação nas páginas para acessar os mockups.
+3. Use os links de navegação nas páginas para acessar os mockups (somente Login, Carrinho e Página Inicial possuem Mockups finalizados).
 
 ---
 
