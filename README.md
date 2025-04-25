@@ -87,6 +87,10 @@ graph TD
   click Home "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/index_01.png" _blank
   click Carrinho "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/cart.png" _blank
   click Login "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/login.png" _blank
+  click Alimentos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/alimentos.jpeg" _blank
+  click Higiene "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/higiene.jpeg" _blank
+  click Limpeza "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/limpeza.jpeg" _blank
+  click Farmacia "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/farmacia.jpeg" blank
 
 
 ```
