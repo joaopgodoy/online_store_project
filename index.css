@@ -31,7 +31,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-left: 5.3125rem; /* 85px */
+  /* padding-left: 5.3125rem; */ /* Remove or comment out this line */
 }
 
 .nav {
