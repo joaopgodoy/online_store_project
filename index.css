@@ -67,6 +67,16 @@ header {
   margin-right: 0.625rem; /* 10px */
 }
 
+/* Mobile menu toggle button */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
 /* HERO */
 .hero {
   background: #ccc;
@@ -471,5 +481,68 @@ footer {
   }
   .order-summary {
     margin-top: 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .header-container {
+    flex-wrap: wrap;
+    padding-left: 2rem;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+    order: 1;
+  }
+  
+  .logo {
+    order: 2;
+    margin-right: auto;
+  }
+  
+  .header-actions {
+    order: 3;
+  }
+  
+  .nav {
+    flex-basis: 100%;
+    order: 4;
+    flex-direction: column;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    align-items: flex-start;
+    padding: 0 1rem;
+  }
+  
+  .nav.active {
+    max-height: 400px; /* Increased from 300px */
+    padding-top: 1rem;
+    padding-bottom: 1.5rem; /* Increased bottom padding */
+  }
+  
+  .nav a {
+    padding: 0.5rem 0;
+    width: 100%;
+    border-bottom: 1px solid #eee;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    padding: 1rem;
+  }
+  
+  .logo-img {
+    height: 2.5rem;
+    margin-right: 0.75rem;
+  }
+  
+  .logo span {
+    font-size: 1.25rem;
+  }
+  
+  .icon-img {
+    height: 1.75rem;
   }
 }
