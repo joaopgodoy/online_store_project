@@ -1,6 +1,6 @@
 # 🛒 Projeto: Mercado de Condomínio - Near Market
 
-![alt text](https://i.imgur.com/InlGHZg.png)
+<img src="https://i.imgur.com/InlGHZg.png" width="300">
 
 ### Grupo:
 - João Pedro Alves Notari Godoy – NUSP: 14582076  
