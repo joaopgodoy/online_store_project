@@ -14,7 +14,11 @@
   <header>
     <div class="header-container">
       <button class="mobile-menu-toggle" aria-label="Toggle menu">
-        ☰
+        <div class="hamburger-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </button>
       <div class="logo">
         <img src="https://i.imgur.com/tto93dT.png" alt="Logo da Near Market" class="logo-img"/>
@@ -136,16 +140,23 @@
   </footer>
 
     <!-- RESPONSIVIDADE -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-      const nav = document.querySelector('.nav');
-      
-      mobileMenuToggle.addEventListener('click', function() {
-        nav.classList.toggle('active');
+    <script> 
+      document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const nav = document.querySelector('.nav');
+        
+        mobileMenuToggle.addEventListener('click', function() {
+          nav.classList.toggle('active');
+          this.classList.toggle('active');
+
+          if (nav.classList.contains('active')) {
+            document.querySelectorAll('.nav a').forEach((item, index) => {
+              item.style.setProperty('--i', index);
+            });
+          }
+        });
       });
-    });
-  </script>
+    </script>
   
 </body>
 </html>
