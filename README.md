@@ -1,6 +1,6 @@
 # 🛒 Projeto: Mercado de Condomínio - Near Market
 
-![alt text](https://i.imgur.com/WVDQtfQ.jpeg)
+<img src="https://i.imgur.com/InlGHZg.png" width="300">
 
 ### Grupo:
 - João Pedro Alves Notari Godoy – NUSP: 14582076  
@@ -136,7 +136,7 @@ Para visualizar o projeto localmente:
 
 1. Baixe o projeto.
 2. Abra o arquivo `index.html` no navegador.
-3. Use os links de navegação nas páginas para acessar os mockups (somente Login, Carrinho e Página Inicial possuem Mockups finalizados).
+3. Use os links de navegação nas páginas para acessar as abas (somente Login, Carrinho e Página Inicial possuem abas finalizados).
 
 ---
 
@@ -152,7 +152,7 @@ Estamos abertos a sugestões para melhorar o layout, acessibilidade e usabilidad
 
 ---
 
-## 🔗 Mockups
+## 🔗 HTMLs Feitos
 
 - [`index.html`](index.html): Tela inicial da loja, com principais produtos
 - [`login.html`](login.html): Tela de login do usuário
