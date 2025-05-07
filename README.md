@@ -63,6 +63,7 @@ graph TD
   PainelUsuarios[Painel de usuários]
   PainelProdutos[Painel de produtos]
   TodosProdutos[Todos os produtos]
+  Checkout[Checkout]
 
   %% Ligações
   Home <--> Alimentos
@@ -84,6 +85,7 @@ graph TD
   Login <--> Usuario
   Usuario <--> Carrinho
   TodosProdutos <--> Carrinho
+  Carrinho <--> Checkout
 
   Login <--> Admin
   Admin <--> Dashboard
@@ -104,7 +106,7 @@ graph TD
   click PainelUsuarios "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/admin_dashboard_users.jpeg" _blank
   click PainelProdutos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/admin_dashboard_products.jpeg" _blank
   click TodosProdutos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/all_products.jpeg" _blank
-
+  click Checkout "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/code.jpeg" _blank
 ```
 
 ---
