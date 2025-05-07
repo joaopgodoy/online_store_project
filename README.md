@@ -64,6 +64,7 @@ graph TD
   PainelProdutos[Painel de produtos]
   TodosProdutos[Todos os produtos]
   Checkout[Checkout]
+  CodigoGerado[Código gerado]
 
   %% Ligações
   Home <--> Alimentos
@@ -86,6 +87,7 @@ graph TD
   Usuario <--> Carrinho
   TodosProdutos <--> Carrinho
   Carrinho <--> Checkout
+  Checkout <--> CodigoGerado
 
   Login <--> Admin
   Admin <--> Dashboard
@@ -107,6 +109,7 @@ graph TD
   click PainelProdutos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/admin_dashboard_products.jpeg" _blank
   click TodosProdutos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/all_products.jpeg" _blank
   click Checkout "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/code.jpeg" _blank
+  click CodigoGerado "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/code.jpeg" _blank
 ```
 
 ---
