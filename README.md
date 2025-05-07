@@ -96,7 +96,7 @@ graph TD
   Dashboard <--> PainelProdutos
 
   %% Links nos nós
-  click Home "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/index_01.png" _blank
+  click Home "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/index.png" _blank
   click Carrinho "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/cart.png" _blank
   click Login "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/login.png" _blank
   click Alimentos "https://github.com/joaopgodoy/online_store_project/blob/main/mockups/alimentos.jpeg" _blank
