@@ -1,4 +1,3 @@
-// app/(...) /login/page.tsx
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -26,38 +25,39 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
+  const [senhaError, setSenhaError] = useState("")
   const [loading, setLoading] = useState(false)
 
   // redireciona se já estiver logado
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/perfil')
+      router.push("/perfil")
     }
   }, [isAuthenticated, router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setSenhaError("")
     setLoading(true)
 
     try {
       const success = await login(email, senha)
-      if (success) {
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Você foi autenticado com sucesso.",
-        })
-        router.push("/perfil")
-      } else {
-        toast({
-          title: "Erro no login",
-          description: "Email ou senha inválidos. Tente novamente.",
-          variant: "destructive",
-        })
+
+      if (!success) {
+        setSenhaError("E-mail ou senha incorreto(s). Verifique e tente novamente.")
+        setLoading(false)
+        return
       }
+
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Você foi autenticado com sucesso.",
+      })
+      router.push("/perfil")
     } catch (error) {
       toast({
         title: "Erro no login",
-        description: "Ocorreu um erro ao tentar fazer login.",
+        description: "Ocorreu um problema. Tente mais tarde.",
         variant: "destructive",
       })
     } finally {
@@ -70,7 +70,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>Entre com seu email e senha para acessar sua conta</CardDescription>
+          <CardDescription>
+            Entre com seu email e senha para acessar sua conta
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -86,20 +88,21 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="senha">Senha</Label>
-                <Link href="/esqueci-senha" className="text-sm text-primary hover:underline">
-                  Esqueceu a senha?
-                </Link>
-              </div>
+              <Label htmlFor="senha">Senha</Label>
               <Input
                 id="senha"
                 type="password"
                 placeholder="••••••••"
                 value={senha}
-                onChange={e => setSenha(e.target.value)}
+                onChange={e => {
+                  setSenha(e.target.value)
+                  setSenhaError("")
+                }}
                 required
               />
+              {senhaError && (
+                <p className="text-sm text-destructive">{senhaError}</p>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
@@ -107,7 +110,7 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             <div className="text-center text-sm">
-              Não tem uma conta?{' '}
+              Não tem uma conta?{" "}
               <Link href="/cadastro" className="text-primary hover:underline">
                 Cadastre-se
               </Link>
