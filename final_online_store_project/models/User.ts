@@ -21,7 +21,20 @@ const UserSchema = new Schema({
   admin: {
     type: Boolean,
     default: false
-  }
+  },
+  paymentMethod: {
+    type: Schema.Types.ObjectId,
+    ref: 'PaymentMethod',
+    default: null
+  },
+  orders: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Order'
+  }],
+  cartItems: [{
+    type: Schema.Types.ObjectId,
+    ref: 'CartItem'
+  }]
 }, {
   timestamps: true
 })

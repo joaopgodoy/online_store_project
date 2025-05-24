@@ -50,130 +50,162 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // validação
-    const senhaValidationError = validarSenha(senha)
-    if (senhaValidationError) {
-      setSenhaError(senhaValidationError)
-      return
-    }
-    if (senha !== confirmaSenha) {
-      setSenhaError('As senhas não coincidem')
+    
+    // Validações
+    if (!nome || !email || !apartamento || !senha || !confirmaSenha) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios",
+        variant: "destructive",
+      })
       return
     }
 
-    setSenhaError('')
+    if (senha !== confirmaSenha) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const erroSenha = validarSenha(senha)
+    if (erroSenha) {
+      setSenhaError(erroSenha)
+      return
+    }
+
     setLoading(true)
+
     try {
-      await axios.post('/api/users', {
+      // Fazer chamada real para a API
+      const response = await axios.post('/api/users', {
         name: nome,
         email,
         apartment: apartamento,
         password: senha,
+        paymentMethod: null, // Sempre nulo no cadastro
+        order: [] // Inicializar com array vazio
       })
+
       toast({
-        title: 'Cadastro realizado!',
-        description: 'Sua conta foi criada com sucesso.',
+        title: "Sucesso!",
+        description: "Cadastro realizado com sucesso",
       })
+
+      // Redirecionar para login
       router.push('/login')
-    } catch (err: any) {
-      console.error(err)
+      
+    } catch (error: any) {
+      console.error('Erro no cadastro:', error)
+      
+      const errorMessage = error.response?.data?.message || "Erro ao realizar cadastro. Tente novamente."
+      
       toast({
-        title: 'Erro ao cadastrar',
-        description:
-          err.response?.data?.message ||
-          'Ocorreu um problema ao criar sua conta. Tente novamente.',
-        variant: 'destructive',
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
       })
     } finally {
       setLoading(false)
     }
   }
 
+  // Se já estiver autenticado, redirecionar
+  if (isAuthenticated) {
+    router.push('/perfil')
+    return null
+  }
+
   return (
-    <div className="container mx-auto py-16 px-4 flex justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
+    <div className="container mx-auto px-4 py-8">
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Cadastro</CardTitle>
           <CardDescription>
-            Preencha os dados abaixo para criar sua conta
+            Crie sua conta para acessar o sistema
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {/* campos de nome, email e apartamento */}
             <div className="space-y-2">
-              <Label htmlFor="nome">Nome Completo</Label>
+              <Label htmlFor="nome">Nome completo</Label>
               <Input
                 id="nome"
-                placeholder="Seu nome completo"
+                type="text"
                 value={nome}
-                onChange={e => setNome(e.target.value)}
+                onChange={(e) => setNome(e.target.value)}
                 required
               />
             </div>
+            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="seu@email.com"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="apartamento">Apartamento</Label>
               <Input
                 id="apartamento"
-                placeholder="Ex: 101"
+                type="text"
                 value={apartamento}
-                onChange={e => setApartamento(e.target.value)}
+                onChange={(e) => setApartamento(e.target.value)}
                 required
               />
             </div>
-            {/* campos de senha */}
+            
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
               <Input
                 id="senha"
                 type="password"
                 value={senha}
-                onChange={e => {
+                onChange={(e) => {
                   setSenha(e.target.value)
                   setSenhaError('')
                 }}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Mínimo 8 caracteres, 1 letra, 1 número e 1 símbolo.
-              </p>
+              {senhaError && (
+                <p className="text-sm text-red-600">{senhaError}</p>
+              )}
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="confirmaSenha">Confirmar Senha</Label>
+              <Label htmlFor="confirmaSenha">Confirmar senha</Label>
               <Input
                 id="confirmaSenha"
                 type="password"
                 value={confirmaSenha}
-                onChange={e => {
-                  setConfirmaSenha(e.target.value)
-                  setSenhaError('')
-                }}
+                onChange={(e) => setConfirmaSenha(e.target.value)}
                 required
               />
-              {senhaError && <p className="text-sm text-destructive">{senhaError}</p>}
             </div>
           </CardContent>
+          
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Cadastrando...' : 'Cadastrar'}
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Cadastrando..." : "Cadastrar"}
             </Button>
-            <div className="text-center text-sm">
-              Já tem uma conta?{' '}
-              <Link href="/login" className="text-primary hover:underline">
+            
+            <p className="text-sm text-center">
+              Já tem uma conta?{" "}
+              <Link href="/login" className="text-blue-600 hover:underline">
                 Faça login
               </Link>
-            </div>
+            </p>
           </CardFooter>
         </form>
       </Card>

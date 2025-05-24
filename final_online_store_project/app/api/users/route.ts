@@ -11,33 +11,45 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await connectDB()
-  const { name, email, apartment, password, admin = false } = await req.json()
+  try {
+    await connectDB()
+    const { name, email, apartment, password } = await req.json()
 
-  // não permitir email duplicado
-  if (await User.findOne({ email })) {
+    // Verificar se o usuário já existe
+    const existingUser = await User.findOne({ email })
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "Email já está sendo usado" },
+        { status: 400 }
+      )
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Criar o usuário com paymentMethod nulo e order vazio
+    const user = await User.create({
+      name,
+      email,
+      apartment,
+      password: hashedPassword,
+      paymentMethod: null, // Sempre nulo no cadastro
+      order: [] // Array vazio no cadastro
+    })
+
+    // Remover a senha antes de retornar
+    const userObj = user.toObject()
+    delete userObj.password
+
     return NextResponse.json(
-      { message: 'Email já cadastrado' },
-      { status: 409 }
+      { message: "Usuário criado com sucesso", user: userObj },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error('Erro ao criar usuário:', error)
+    return NextResponse.json(
+      { message: "Erro interno do servidor" },
+      { status: 500 }
     )
   }
-
-  // hash da senha
-  const salt = await bcrypt.genSalt(10)
-  const hashed = await bcrypt.hash(password, salt)
-
-  // cria o usuário
-  const newUser = await User.create({
-    name,
-    email,
-    apartment,
-    password: hashed,
-    admin: Boolean(admin),
-  })
-
-  // remove senha do objeto de resposta
-  const obj = newUser.toObject()
-  delete obj.password
-
-  return NextResponse.json(obj, { status: 201 })
 }
