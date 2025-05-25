@@ -1,34 +1,75 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { notFound } from "next/navigation"
-import { Minus, Plus, ShoppingCart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/components/cart-provider"
-import { produtos } from "@/lib/data"
+import { useProducts } from "@/hooks/use-products"
 import { useToast } from "@/components/ui/use-toast"
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { addItem } = useCart()
+  const { products, loading, error } = useProducts()
   const [quantidade, setQuantidade] = useState(1)
+  const [productId, setProductId] = useState<string | null>(null)
 
-  const produto = produtos.find((p) => p.id === params.id)
+  // Resolver os parâmetros de forma assíncrona
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params
+      setProductId(resolvedParams.id)
+    }
+    resolveParams()
+  }, [params])
+
+  if (loading || !productId) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2">Carregando produto...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center py-12">
+          <h2 className="text-xl font-medium mb-2 text-red-600">Erro ao carregar produto</h2>
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const produto = products.find((p) => p.id === productId)
 
   if (!produto) {
     notFound()
   }
+
+  const getName = () => {
+    return produto.name || "Produto sem nome"
+  }
+  const getDescription = () => produto.description || produto.descricao || ""
+  const getPrice = () => produto.price || produto.preco || 0
+  const getCategory = () => produto.category || produto.categoria || ""
+  const getImage = () => produto.image || produto.imagem || "/placeholder.svg?height=300&width=300"
+  const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
 
   const incrementarQuantidade = () => {
     setQuantidade((prev) => prev + 1)
@@ -39,73 +80,99 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const adicionarAoCarrinho = () => {
-    if (!produto.disponivel) return
+    if (!getAvailability()) return
 
-    // Adicionar ao carrinho quantidade vezes
+    // Normalizar o produto para o formato esperado pelo carrinho
+    const produtoNormalizado = {
+      id: produto.id,
+      name: getName(),
+      descricao: getDescription(),
+      preco: getPrice(),
+      categoria: getCategory(),
+      imagem: getImage(),
+      disponivel: getAvailability()
+    }
+
     for (let i = 0; i < quantidade; i++) {
-      addItem(produto)
+      addItem(produtoNormalizado)
     }
 
     toast({
       title: "Produto adicionado ao carrinho",
-      description: `${quantidade}x ${produto.nome} foi adicionado ao seu carrinho.`,
+      description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
     })
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Imagem do Produto */}
-        <div className="relative aspect-square overflow-hidden rounded-lg border">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Imagem do produto */}
+        <div className="aspect-square relative overflow-hidden rounded-lg border">
           <Image
-            src={produto.imagem || "/placeholder.svg?height=600&width=600"}
-            alt={produto.nome}
+            src={getImage()}
+            alt={getName()}
             fill
             className="object-cover"
-            priority
           />
         </div>
 
-        {/* Detalhes do Produto */}
-        <div className="flex flex-col">
-          <Badge variant="outline" className="w-fit mb-2">
-            {produto.categoria}
-          </Badge>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">{produto.nome}</h1>
-          <p className="text-2xl font-semibold mb-4">R$ {produto.preco.toFixed(2)}</p>
-
-          <Badge variant={produto.disponivel ? "default" : "destructive"} className="w-fit mb-6">
-            {produto.disponivel ? "Em estoque" : "Indisponível"}
-          </Badge>
-
-          <div className="prose max-w-none mb-6">
-            <p>{produto.descricao}</p>
+        {/* Detalhes do produto */}
+        <div className="space-y-6">
+          <div>
+            <Badge variant="secondary" className="mb-2">
+              {getCategory()}
+            </Badge>
+            <h1 className="text-3xl font-bold">{getName()}</h1>
+            <p className="text-2xl font-semibold text-primary mt-2">
+              R$ {getPrice().toFixed(2)}
+            </p>
           </div>
 
-          {produto.disponivel ? (
-            <>
-              <div className="flex items-center gap-4 mb-6">
-                <span className="font-medium">Quantidade:</span>
-                <div className="flex items-center">
-                  <Button variant="outline" size="icon" onClick={decrementarQuantidade} disabled={quantidade <= 1}>
-                    <Minus className="h-4 w-4" />
+          <p className="text-muted-foreground leading-relaxed">
+            {getDescription()}
+          </p>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Status:</span>
+            <Badge variant={getAvailability() ? "default" : "destructive"}>
+              {getAvailability() ? "Disponível" : "Indisponível"}
+            </Badge>
+          </div>
+
+          {getAvailability() && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium">Quantidade:</span>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={decrementarQuantidade}
+                    disabled={quantidade <= 1}
+                    className="w-8 h-8 p-0"
+                  >
+                    -
                   </Button>
-                  <span className="w-12 text-center">{quantidade}</span>
-                  <Button variant="outline" size="icon" onClick={incrementarQuantidade}>
-                    <Plus className="h-4 w-4" />
+                  <span className="w-12 text-center font-medium">{quantidade}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={incrementarQuantidade}
+                    className="w-8 h-8 p-0"
+                  >
+                    +
                   </Button>
                 </div>
               </div>
 
-              <Button size="lg" className="w-full md:w-auto" onClick={adicionarAoCarrinho}>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Adicionar ao Carrinho
+              <Button
+                onClick={adicionarAoCarrinho}
+                className="w-full"
+                size="lg"
+              >
+                🛒 Adicionar ao Carrinho
               </Button>
-            </>
-          ) : (
-            <Button size="lg" className="w-full md:w-auto" disabled>
-              Produto Indisponível
-            </Button>
+            </div>
           )}
         </div>
       </div>

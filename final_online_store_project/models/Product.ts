@@ -1,7 +1,7 @@
 import mongoose, { Schema, model, models } from 'mongoose'
 
 const ProductSchema = new Schema({
-  name: {
+  name: {  // Mudança: 'name' para 'name' para compatibilidade com o BD
     type: String,
     required: true,
     unique: true,

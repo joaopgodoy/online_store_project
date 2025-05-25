@@ -55,8 +55,8 @@ export default function ProfilePage() {
               <div className="flex items-start gap-3">
                 <User className="h-5 w-5 mt-0.5 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">{user.nome}</p>
-                  <p className="text-sm text-muted-foreground">Nome</p>
+                  <p className="font-medium">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">name</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

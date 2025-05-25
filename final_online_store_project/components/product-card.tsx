@@ -8,27 +8,38 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ produto }: ProductCardProps) {
+  // Função helper para pegar o valor correto independente do formato - CORRIGIDO: priorizar campos do database (em inglês)
+  const getName = () => {
+    console.log('ProductCard - Produto:', produto) // Debug
+    return produto.name || produto.name || "Produto sem name"
+  }
+  const getDescription = () => produto.description || produto.descricao || ""
+  const getPrice = () => produto.price || produto.preco || 0
+  const getCategory = () => produto.category || produto.categoria || ""
+  const getImage = () => produto.image || produto.imagem || "/placeholder.svg?height=300&width=300"
+  const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
+
   return (
     <Link href={`/produtos/${produto.id}`} className="group">
       <div className="relative overflow-hidden rounded-lg border bg-background transition-colors hover:bg-accent">
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={produto.imagem || "/placeholder.svg?height=300&width=300"}
-            alt={produto.nome}
+            src={getImage()}
+            alt={getName()}
             fill
             className="object-cover transition-transform group-hover:scale-105"
           />
         </div>
         <div className="p-4">
           <Badge variant="outline" className="mb-2">
-            {produto.categoria}
+            {getCategory()}
           </Badge>
-          <h3 className="font-medium">{produto.nome}</h3>
-          <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{produto.descricao}</p>
+          <h3 className="font-medium">{getName()}</h3>
+          <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{getDescription()}</p>
           <div className="mt-2 flex items-center justify-between">
-            <span className="font-semibold">R$ {produto.preco.toFixed(2)}</span>
-            <Badge variant={produto.disponivel ? "default" : "destructive"}>
-              {produto.disponivel ? "Disponível" : "Indisponível"}
+            <span className="font-semibold">R$ {getPrice().toFixed(2)}</span>
+            <Badge variant={getAvailability() ? "default" : "destructive"}>
+              {getAvailability() ? "Disponível" : "Indisponível"}
             </Badge>
           </div>
         </div>

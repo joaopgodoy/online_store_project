@@ -1,12 +1,14 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
-
 import { Button } from "@/components/ui/button"
 import ProductCard from "@/components/product-card"
-import { produtos } from "@/lib/data"
+import { useProducts } from "@/hooks/use-products"
 
 export default function Home() {
-  const produtosDestacados = produtos.slice(0, 8)
+  const { products, loading, error } = useProducts()
+  const produtosDestacados = products.slice(0, 8)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -33,47 +35,62 @@ export default function Home() {
       {/* Produtos Mais Procurados */}
       <section className="container mx-auto py-12 px-4">
         <h2 className="text-2xl md:text-3xl font-bold mb-8">Produtos Mais Procurados</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {produtosDestacados.map((produto) => (
-            <ProductCard key={produto.id} produto={produto} />
-          ))}
-        </div>
-        <div className="mt-10 text-center">
-          <Button asChild size="lg">
-            <Link href="/produtos">Ver Todos os Produtos</Link>
-          </Button>
-        </div>
+        
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-2">Carregando produtos...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-medium mb-2 text-red-600">Erro ao carregar produtos</h3>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {produtosDestacados.map((produto) => (
+                <ProductCard key={produto.id} produto={produto} />
+              ))}
+            </div>
+            <div className="mt-10 text-center">
+              <Button asChild size="lg">
+                <Link href="/produtos">Ver Todos os Produtos</Link>
+              </Button>
+            </div>
+          </>
+        )}
       </section>
 
       {/* Categorias */}
       <section className="bg-muted py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">Nossas Categorias</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">Nossas Categorias</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link
               href="/categorias/alimentos-bebidas"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="bg-background p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <h3 className="text-xl font-semibold mb-2">Alimentos e Bebidas</h3>
               <p className="text-muted-foreground">Lanches, bebidas, produtos básicos e mais</p>
             </Link>
             <Link
               href="/categorias/higiene-cuidados"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="bg-background p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
-              <h3 className="text-xl font-semibold mb-2">Higiene e Cuidados Pessoais</h3>
+              <h3 className="text-xl font-semibold mb-2">Higiene e Cuidados</h3>
               <p className="text-muted-foreground">Produtos para cuidados diários</p>
             </Link>
             <Link
               href="/categorias/limpeza"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="bg-background p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <h3 className="text-xl font-semibold mb-2">Limpeza</h3>
               <p className="text-muted-foreground">Produtos para manter sua casa limpa</p>
             </Link>
             <Link
               href="/categorias/farmacia-bem-estar"
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="bg-background p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <h3 className="text-xl font-semibold mb-2">Farmácia e Bem-estar</h3>
               <p className="text-muted-foreground">Medicamentos e produtos para seu bem-estar</p>

@@ -82,14 +82,14 @@ export default function CartPage() {
                 <div className="relative w-20 h-20 overflow-hidden rounded-md">
                   <Image
                     src={item.imagem || "/placeholder.svg?height=80&width=80"}
-                    alt={item.nome}
+                    alt={item.name}
                     fill
                     className="object-cover"
                   />
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="font-medium">{item.nome}</h3>
+                  <h3 className="font-medium">{item.name}</h3>
                   <p className="text-sm text-muted-foreground">{item.categoria}</p>
                   <p className="font-semibold">R$ {item.preco.toFixed(2)}</p>
                 </div>
@@ -123,7 +123,7 @@ export default function CartPage() {
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between">
                     <span>
-                      {item.quantidade}x {item.nome}
+                      {item.quantidade}x {item.name}
                     </span>
                     <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
                   </div>
@@ -165,10 +165,10 @@ export default function CartPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="cardName">Nome no Cartão</Label>
+                  <Label htmlFor="cardName">name no Cartão</Label>
                   <Input
                     id="cardName"
-                    placeholder="Nome completo"
+                    placeholder="name completo"
                     value={cardName}
                     onChange={(e) => setCardName(e.target.value)}
                     required

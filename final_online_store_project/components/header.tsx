@@ -12,10 +12,10 @@ import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/components/auth-provider"
 
 const categorias = [
-  { nome: "Alimentos e Bebidas", href: "/categorias/alimentos-bebidas" },
-  { nome: "Higiene e Cuidados", href: "/categorias/higiene-cuidados" },
-  { nome: "Limpeza", href: "/categorias/limpeza" },
-  { nome: "Farmácia e Bem-estar", href: "/categorias/farmacia-bem-estar" },
+  { name: "Alimentos e Bebidas", href: "/categorias/alimentos-bebidas" },
+  { name: "Higiene e Cuidados", href: "/categorias/higiene-cuidados" },
+  { name: "Limpeza", href: "/categorias/limpeza" },
+  { name: "Farmácia e Bem-estar", href: "/categorias/farmacia-bem-estar" },
 ]
 
 export default function Header() {
@@ -43,7 +43,7 @@ export default function Header() {
                 pathname === categoria.href ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              {categoria.nome}
+              {categoria.name}
             </Link>
           ))}
         </nav>
@@ -95,7 +95,7 @@ export default function Header() {
                       }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      {categoria.nome}
+                      {categoria.name}
                     </Link>
                   ))}
                 </nav>

@@ -24,7 +24,7 @@ export default function RegisterPage() {
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
 
-  const [nome, setNome] = useState('')
+  const [name, setname] = useState('')
   const [email, setEmail] = useState('')
   const [apartamento, setApartamento] = useState('')
   const [senha, setSenha] = useState('')
@@ -52,7 +52,7 @@ export default function RegisterPage() {
     e.preventDefault()
     
     // Validações
-    if (!nome || !email || !apartamento || !senha || !confirmaSenha) {
+    if (!name || !email || !apartamento || !senha || !confirmaSenha) {
       toast({
         title: "Erro",
         description: "Todos os campos são obrigatórios",
@@ -81,7 +81,7 @@ export default function RegisterPage() {
     try {
       // Fazer chamada real para a API
       const response = await axios.post('/api/users', {
-        name: nome,
+        name: name,
         email,
         apartment: apartamento,
         password: senha,
@@ -130,12 +130,12 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nome">Nome completo</Label>
+              <Label htmlFor="name">name completo</Label>
               <Input
-                id="nome"
+                id="name"
                 type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                value={name}
+                onChange={(e) => setname(e.target.value)}
                 required
               />
             </div>
