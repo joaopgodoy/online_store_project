@@ -12,8 +12,8 @@ import { CartProvider } from "@/components/cart-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Loja do Condomínio",
-  description: "Tudo o que você precisa sem sair do condomínio"
+  title: "Near Market",
+  description: "O Seu Supermercado em Casa"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
