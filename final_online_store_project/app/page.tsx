@@ -22,9 +22,9 @@ export default function Home() {
           priority
         />
         <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-4">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">Loja do Condomínio</h1>
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">Near Market</h1>
           <p className="text-lg md:text-xl mb-6 text-center max-w-2xl">
-            Tudo o que você precisa sem sair do condomínio. Entrega rápida e prática!
+            O Seu Supermercado em Casa!
           </p>
           <Button asChild size="lg">
             <Link href="/produtos">Ver Produtos</Link>
