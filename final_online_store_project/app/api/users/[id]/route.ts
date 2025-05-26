@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
 import User from '@/models/User'
+import bcrypt from 'bcryptjs'
+import mongoose from 'mongoose'
 
 // PUT endpoint to update a user
 export async function PUT(
@@ -10,30 +12,63 @@ export async function PUT(
   try {
     await connectDB()
     const { id } = params
-    const { name, email, apartment, admin } = await req.json()
+    const { name, email, apartment, admin, password } = await req.json()
     
-    // Check if user exists
-    const user = await User.findById(id)
-    if (!user) {
+    // Validar se o ID é válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: 'ID de usuário inválido' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar se existe outro usuário com o mesmo email (exceto o atual)
+    const existingUser = await User.findOne({ 
+      email, 
+      _id: { $ne: id } 
+    })
+    if (existingUser) {
+      return NextResponse.json(
+        { message: 'Já existe um usuário com esse email' },
+        { status: 400 }
+      )
+    }
+    
+    // Preparar dados para atualização
+    const updateData: any = {
+      name,
+      email,
+      apartment,
+      admin
+    }
+
+    // Se uma nova senha foi fornecida, fazer hash dela
+    if (password && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 12)
+    }
+    
+    // Atualizar usuário
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    )
+    
+    if (!updatedUser) {
       return NextResponse.json(
         { message: "Usuário não encontrado" },
         { status: 404 }
       )
     }
     
-    // Update user fields
-    user.name = name
-    user.email = email
-    user.apartment = apartment
-    user.admin = admin
-    
-    await user.save()
-    
     // Remove password before returning
-    const userObj = user.toObject()
+    const userObj = updatedUser.toObject()
     delete userObj.password
     
-    return NextResponse.json(userObj)
+    return NextResponse.json({
+      message: 'Usuário atualizado com sucesso',
+      user: userObj
+    })
   } catch (error) {
     console.error('Erro ao atualizar usuário:', error)
     return NextResponse.json(
@@ -51,6 +86,14 @@ export async function DELETE(
   try {
     await connectDB()
     const { id } = params
+    
+    // Validar se o ID é válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: 'ID de usuário inválido' },
+        { status: 400 }
+      )
+    }
     
     const result = await User.findByIdAndDelete(id)
     

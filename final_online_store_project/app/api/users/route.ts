@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import connectDB from '@/lib/mongoose'
 import User from '@/models/User'
+import bcrypt from 'bcryptjs'
 
+// GET endpoint to fetch all users
 export async function GET() {
-  await connectDB()
-  // lista todos os usuários (sem expor senha)
-  const users = await User.find().select('-password')
-  return NextResponse.json(users)
+  try {
+    await connectDB()
+    
+    // Buscar todos os usuários, excluindo a senha
+    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 })
+    
+    return NextResponse.json(users)
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error)
+    return NextResponse.json(
+      { message: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
 }
 
+// POST endpoint to create a new user
 export async function POST(req: Request) {
   try {
     await connectDB()
-    const { name, email, apartment, password } = await req.json()
+    const { name, email, apartment, password, admin = false } = await req.json()
 
     // Verificar se o usuário já existe
     const existingUser = await User.findOne({ email })
@@ -27,14 +39,15 @@ export async function POST(req: Request) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Criar o usuário com paymentMethod nulo e order vazio
+    // Criar o usuário
     const user = await User.create({
       name,
       email,
       apartment,
       password: hashedPassword,
-      paymentMethod: null, // Sempre nulo no cadastro
-      order: [] // Array vazio no cadastro
+      admin,
+      paymentMethod: null,
+      order: []
     })
 
     // Remover a senha antes de retornar
