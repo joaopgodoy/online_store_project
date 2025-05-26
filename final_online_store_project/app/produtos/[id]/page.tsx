@@ -70,9 +70,11 @@ export default function ProductPage({ params }: ProductPageProps) {
   const getCategory = () => produto.category || produto.categoria || ""
   const getImage = () => produto.image || produto.imagem || "/placeholder.svg?height=300&width=300"
   const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
+  const getAvailableQuantity = () => (produto as any)?.availableQuantity ?? (produto as any)?.estoque ?? 0
 
   const incrementarQuantidade = () => {
-    setQuantidade((prev) => prev + 1)
+    const maxQuantity = getAvailableQuantity()
+    setQuantidade((prev) => (prev < maxQuantity ? prev + 1 : prev))
   }
 
   const decrementarQuantidade = () => {
@@ -80,7 +82,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const adicionarAoCarrinho = () => {
-    if (!getAvailability()) return
+    if (!getAvailability() || getAvailableQuantity() === 0) return
 
     // Normalizar o produto para o formato esperado pelo carrinho
     const produtoNormalizado = {
@@ -93,6 +95,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       disponivel: getAvailability()
     }
 
+    // Adicionar cada item individualmente para respeitar a quantidade
     for (let i = 0; i < quantidade; i++) {
       addItem(produtoNormalizado)
     }
@@ -102,6 +105,10 @@ export default function ProductPage({ params }: ProductPageProps) {
       description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
     })
   }
+
+  // Verificar se o produto está disponível e tem estoque
+  const isOutOfStock = !getAvailability() || getAvailableQuantity() === 0
+  const availableQty = getAvailableQuantity()
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -139,7 +146,15 @@ export default function ProductPage({ params }: ProductPageProps) {
             </Badge>
           </div>
 
-          {getAvailability() && (
+          {/* Mostrar quantidade disponível */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Estoque disponível:</span>
+            <Badge variant={availableQty > 0 ? "outline" : "destructive"}>
+              {availableQty} {availableQty === 1 ? "unidade" : "unidades"}
+            </Badge>
+          </div>
+
+          {!isOutOfStock ? (
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium">Quantidade:</span>
@@ -158,19 +173,44 @@ export default function ProductPage({ params }: ProductPageProps) {
                     variant="outline"
                     size="sm"
                     onClick={incrementarQuantidade}
+                    disabled={quantidade >= availableQty}
                     className="w-8 h-8 p-0"
                   >
                     +
                   </Button>
                 </div>
+                {quantidade >= availableQty && (
+                  <span className="text-xs text-muted-foreground">
+                    Máximo valor atingido!
+                  </span>
+                )}
               </div>
 
               <Button
                 onClick={adicionarAoCarrinho}
                 className="w-full"
                 size="lg"
+                disabled={isOutOfStock}
               >
                 🛒 Adicionar ao Carrinho
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-destructive font-medium">
+                  {getAvailability() ? "Produto sem estoque" : "Produto indisponível"}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Este produto não está disponível para compra no momento.
+                </p>
+              </div>
+              <Button
+                disabled
+                className="w-full"
+                size="lg"
+              >
+                Produto Indisponível
               </Button>
             </div>
           )}
