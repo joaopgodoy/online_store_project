@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
-import { Pencil, Trash2, Plus, Package, Users, Shield, User } from "lucide-react"
+import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X } from "lucide-react"
+import Image from "next/image"
 
 interface Product {
   _id: string
@@ -41,6 +42,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState({ products: true, users: true })
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
   
   // Form states
   const [productForm, setProductForm] = useState({
@@ -305,6 +308,61 @@ export default function AdminPage() {
     </div>
   )
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setUploadingImage(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Erro ao fazer upload')
+      }
+
+      const data = await response.json()
+      
+      // Atualizar o campo de imagem no formulário
+      setProductForm(prev => ({
+        ...prev,
+        data: { ...prev.data, image: data.url }
+      }))
+
+      toast({
+        title: "Sucesso",
+        description: "Imagem enviada com sucesso!"
+      })
+
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao fazer upload da imagem",
+        variant: "destructive"
+      })
+    } finally {
+      setUploadingImage(false)
+      // Limpar o input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const removeImage = () => {
+    setProductForm(prev => ({
+      ...prev,
+      data: { ...prev.data, image: "" }
+    }))
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
@@ -365,7 +423,14 @@ export default function AdminPage() {
                       <TableRow key={product._id}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <img src={product.image} alt={product.name} className="w-12 h-12 rounded-md object-cover" />
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden bg-gray-50 border">
+                              <Image
+                                src={product.image}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
                             <div>
                               <div className="font-medium">{product.name}</div>
                               <div className="text-sm text-muted-foreground truncate max-w-[200px]">
@@ -496,7 +561,7 @@ export default function AdminPage() {
 
       {/* Product Dialog */}
       <Dialog open={productForm.open} onOpenChange={(open) => !open && resetProductForm()}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{productForm.editing ? "Editar Produto" : "Adicionar Produto"}</DialogTitle>
             <DialogDescription>
@@ -587,14 +652,69 @@ export default function AdminPage() {
                 </Select>
               </div>
 
+              {/* Image Upload Section */}
               <div className="space-y-2">
-                <Label htmlFor="product-image">URL da Imagem</Label>
-                <Input
-                  id="product-image"
-                  value={productForm.data.image}
-                  onChange={(e) => setProductForm(prev => ({ ...prev, data: { ...prev.data, image: e.target.value } }))}
-                  placeholder="https://exemplo.com/imagem.jpg"
-                />
+                <Label>Imagem do Produto</Label>
+                
+                {/* Current Image Preview */}
+                {productForm.data.image && (
+                  <div className="relative w-48 h-48 border rounded-lg overflow-hidden bg-gray-50">
+                    <Image
+                      src={productForm.data.image}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 w-8 h-8 p-0 shadow-md"
+                      onClick={removeImage}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Upload Controls */}
+                <div className="space-y-3">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="flex items-center gap-2 w-full"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {uploadingImage ? "Enviando..." : "Escolher Imagem"}
+                  </Button>
+                  
+                  {!productForm.data.image && (
+                    <div className="space-y-2">
+                      <Label htmlFor="product-image-url" className="text-sm text-muted-foreground">
+                        Ou insira uma URL da imagem
+                      </Label>
+                      <Input
+                        id="product-image-url"
+                        value={productForm.data.image}
+                        onChange={(e) => setProductForm(prev => ({ ...prev, data: { ...prev.data, image: e.target.value } }))}
+                        placeholder="https://exemplo.com/imagem.jpg"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceitos: JPEG, PNG, WebP. Tamanho máximo: 5MB. Recomendado: 300x300px
+                </p>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -613,7 +733,7 @@ export default function AdminPage() {
               <Button type="button" variant="outline" onClick={() => resetProductForm()}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={productForm.submitting}>
+              <Button type="submit" disabled={productForm.submitting || uploadingImage}>
                 {productForm.submitting ? "Salvando..." : productForm.editing ? "Atualizar" : "Criar"}
               </Button>
             </DialogFooter>
