@@ -11,7 +11,9 @@ export function useProducts() {
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/products')
+      const response = await fetch('/api/products', {
+        cache: 'no-store' // Garantir que sempre busque dados atualizados
+      })
       
       if (!response.ok) {
         throw new Error('Erro ao carregar produtos')

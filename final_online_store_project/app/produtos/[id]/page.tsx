@@ -81,7 +81,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     setQuantidade((prev) => (prev > 1 ? prev - 1 : 1))
   }
 
-  const adicionarAoCarrinho = () => {
+  const adicionarAoCarrinho = async () => {
     if (!getAvailability() || getAvailableQuantity() === 0) return
 
     // Normalizar o produto para o formato esperado pelo carrinho
@@ -95,15 +95,24 @@ export default function ProductPage({ params }: ProductPageProps) {
       disponivel: getAvailability()
     }
 
-    // Adicionar cada item individualmente para respeitar a quantidade
-    for (let i = 0; i < quantidade; i++) {
-      addItem(produtoNormalizado)
-    }
+    // Tentar adicionar ao carrinho com a quantidade selecionada
+    const success = await addItem(produtoNormalizado, quantidade)
 
-    toast({
-      title: "Produto adicionado ao carrinho",
-      description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
-    })
+    if (success) {
+      toast({
+        title: "Produto adicionado ao carrinho",
+        description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
+      })
+      
+      // Resetar quantidade para 1 após adicionar
+      setQuantidade(1)
+    } else {
+      toast({
+        title: "Erro ao adicionar produto",
+        description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
+        variant: "destructive"
+      })
+    }
   }
 
   // Verificar se o produto está disponível e tem estoque
