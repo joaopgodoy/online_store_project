@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Near Market</h3>
             <p className="text-muted-foreground">
-              O seu mercado em casa!
+              O Seu Supermercado em Casa!
             </p>
           </div>
           <div>
@@ -42,7 +42,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>contato@nearmarket.com.br</span>
+                <span>contato@lojadocondominio.com.br</span>
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />

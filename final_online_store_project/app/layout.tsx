@@ -12,7 +12,7 @@ import { CartProvider } from "@/components/cart-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Near Market",
+  title: "Loja do Condomínio",
   description: "Tudo o que você precisa sem sair do condomínio"
 };
 

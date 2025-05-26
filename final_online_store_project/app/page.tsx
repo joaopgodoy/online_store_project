@@ -16,7 +16,7 @@ export default function Home() {
       <div className="relative w-full h-[400px] md:h-[500px]">
         <Image
           src="/placeholder.svg?height=500&width=1200"
-          alt="Near Market"
+          alt="Loja de Condomínio"
           fill
           className="object-cover"
           priority
@@ -24,7 +24,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-4">
           <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">Near Market</h1>
           <p className="text-lg md:text-xl mb-6 text-center max-w-2xl">
-            O seu mercado em casa!
+            O Seu Supermercado em Casa!
           </p>
           <Button asChild size="lg">
             <Link href="/produtos">Ver Produtos</Link>
