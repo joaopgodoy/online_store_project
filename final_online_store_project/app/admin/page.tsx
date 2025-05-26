@@ -312,6 +312,27 @@ export default function AdminPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
+    // Validar tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Erro",
+        description: "Formato de arquivo não suportado. Use JPEG, PNG ou WebP.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validar tamanho (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Erro",
+        description: "Arquivo muito grande. Tamanho máximo: 5MB.",
+        variant: "destructive"
+      })
+      return
+    }
+
     setUploadingImage(true)
 
     try {
@@ -324,13 +345,14 @@ export default function AdminPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Erro ao fazer upload')
+        throw new Error('Erro no upload')
       }
 
       const data = await response.json()
-      
-      // Atualizar o campo de imagem no formulário
+
+      // Salvar referência da imagem anterior para possível cleanup
+      const previousImage = productForm.data.image
+
       setProductForm(prev => ({
         ...prev,
         data: { ...prev.data, image: data.url }
@@ -338,7 +360,9 @@ export default function AdminPage() {
 
       toast({
         title: "Sucesso",
-        description: "Imagem enviada com sucesso!"
+        description: previousImage && !previousImage.includes('placeholder.svg') 
+          ? "Nova imagem enviada! A imagem anterior será removida ao salvar o produto."
+          : "Imagem enviada com sucesso!"
       })
 
     } catch (error) {
