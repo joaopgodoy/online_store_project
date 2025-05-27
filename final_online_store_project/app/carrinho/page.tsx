@@ -25,13 +25,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-
+import { Badge } from "@/components/ui/badge"
 interface PaymentMethod {
   _id: string
   type: string
   lastFourDigits: string
   cardholderName: string
   createdAt: string
+  isDefault?: boolean
 }
 
 export default function CartPage() {
@@ -67,19 +68,44 @@ export default function CartPage() {
   const fetchPaymentMethods = async () => {
     try {
       setLoadingPaymentMethods(true)
-      const response = await axios.get('/api/users/me/payment-methods')
+      const token = localStorage.getItem('token')
       
-      if (response.data) {
-        setPaymentMethods([response.data])
-        setSelectedPaymentMethod(response.data._id)
-      } else {
+      if (!token) {
+        console.warn('Token não encontrado')
         setPaymentMethods([])
         setShowNewCardForm(true)
+        return
       }
-    } catch (error) {
+
+      const response = await axios.get('/api/users/me/payment-methods', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const methods = Array.isArray(response.data) ? response.data : []
+      setPaymentMethods(methods)
+      
+      if (methods.length > 0) {
+        // Selecionar o cartão padrão ou o primeiro disponível
+        const defaultCard = methods.find((m: any) => m.isDefault) || methods[0]
+        setSelectedPaymentMethod(defaultCard._id)
+      } else {
+        setShowNewCardForm(true)
+      }
+    } catch (error: any) {
       console.error('Erro ao buscar métodos de pagamento:', error)
       setPaymentMethods([])
       setShowNewCardForm(true)
+      
+      // Só mostrar toast de erro se não for 401 (não autenticado)
+      if (error.response?.status !== 401) {
+        toast({
+          title: "Aviso",
+          description: "Não foi possível carregar métodos de pagamento salvos. Você pode adicionar um novo cartão.",
+          variant: "default"
+        })
+      }
     } finally {
       setLoadingPaymentMethods(false)
     }
@@ -184,21 +210,36 @@ export default function CartPage() {
         type: cardType
       })
 
-      const response = await axios.post('/api/users/me/payment-methods', {
+      const requestData = {
         cardNumber: cleanCardNumber,
-        cardName,
+        cardName: cardName.trim(),
         cardExpiry,
         type: cardType
-      }, {
+      }
+
+      const response = await fetch('/api/users/me/payment-methods', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        timeout: 10000 // 10 segundos de timeout
+        body: JSON.stringify(requestData)
       })
 
-      const newPaymentMethod = response.data.paymentMethod
-      setPaymentMethods([newPaymentMethod])
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }))
+        throw new Error(errorData.message || `Erro HTTP: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const newPaymentMethod = data.paymentMethod
+      
+      if (!newPaymentMethod) {
+        throw new Error('Método de pagamento não retornado pela API')
+      }
+      
+      // Adicionar à lista existente ao invés de substituir
+      setPaymentMethods(prev => [...prev, newPaymentMethod])
       setSelectedPaymentMethod(newPaymentMethod._id)
       setShowNewCardForm(false)
 
@@ -210,35 +251,26 @@ export default function CartPage() {
 
       toast({
         title: "Sucesso",
-        description: "Método de pagamento salvo com sucesso!"
+        description: "Método de pagamento adicionado com sucesso!"
       })
 
       return true
     } catch (error: any) {
       console.error('Erro completo ao salvar método de pagamento:', error)
       
-      // Log detalhado do erro
-      if (error.response) {
-        console.error('Dados da resposta:', error.response.data)
-        console.error('Status:', error.response.status)
-        console.error('Headers:', error.response.headers)
-      } else if (error.request) {
-        console.error('Request feito mas sem resposta:', error.request)
-      } else {
-        console.error('Erro na configuração da request:', error.message)
-      }
-      
       let errorMessage = "Erro ao salvar método de pagamento"
       
-      if (error.response?.status === 401) {
+      if (error.message?.includes('401') || error.message?.includes('Token')) {
         errorMessage = "Sessão expirada. Faça login novamente."
         router.push('/login')
-      } else if (error.response?.status === 400) {
-        errorMessage = error.response.data?.message || "Dados do cartão inválidos"
-      } else if (error.response?.status === 500) {
+      } else if (error.message?.includes('400')) {
+        errorMessage = error.message || "Dados do cartão inválidos"
+      } else if (error.message?.includes('500')) {
         errorMessage = "Erro interno do servidor. Tente novamente."
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = "Timeout na conexão. Tente novamente."
+      } else if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+        errorMessage = "Erro de conexão. Verifique sua internet e tente novamente."
+      } else if (error.message) {
+        errorMessage = error.message
       }
       
       toast({
@@ -466,12 +498,21 @@ export default function CartPage() {
                           {paymentMethods.map((method) => (
                             <div key={method._id} className="flex items-center space-x-2">
                               <RadioGroupItem value={method._id} id={method._id} />
-                              <Label htmlFor={method._id} className="flex items-center gap-2 cursor-pointer">
+                              <Label htmlFor={method._id} className="flex items-center gap-2 cursor-pointer flex-1">
                                 <CreditCard className="h-4 w-4" />
-                                {method.type === 'credit' ? 'Crédito' : 'Débito'} •••• {method.lastFourDigits}
-                                <span className="text-sm text-muted-foreground">
-                                  ({method.cardholderName})
-                                </span>
+                                <div className="flex-1">
+                                  <span className="font-medium">
+                                    {method.type === 'credit' ? 'Crédito' : 'Débito'} •••• {method.lastFourDigits}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground ml-2">
+                                    ({method.cardholderName})
+                                  </span>
+                                  {method.isDefault && (
+                                    <Badge variant="outline" className="ml-2 text-xs">
+                                      Padrão
+                                    </Badge>
+                                  )}
+                                </div>
                               </Label>
                             </div>
                           ))}

@@ -19,25 +19,18 @@ export async function GET(req: Request) {
     const token = authHeader.split(" ")[1]
 
     try {
-      // decodifica e valida o token
       const payload = jwt.verify(
         token,
         process.env.JWT_SECRET as string
       ) as { sub: string }
 
-      // busca o usuário e sua forma de pagamento
-      const user = await User.findById(payload.sub)
-        .populate('paymentMethod')
-        .select('paymentMethod')
+      // Buscar todos os métodos de pagamento do usuário
+      const paymentMethods = await PaymentMethod.find({ user: payload.sub })
+        .sort({ createdAt: -1 }) // Mais recentes primeiro
+        .lean() // Para melhor performance
 
-      if (!user) {
-        return NextResponse.json(
-          { message: "Usuário não encontrado" },
-          { status: 404 }
-        )
-      }
-
-      return NextResponse.json(user.paymentMethod)
+      // Retornar array vazio se não houver métodos
+      return NextResponse.json(paymentMethods || [])
     } catch (err) {
       return NextResponse.json(
         { message: "Token expirado ou inválido" },
@@ -81,7 +74,6 @@ export async function POST(req: Request) {
     const { cardNumber, cardName, cardExpiry, type } = requestData
 
     try {
-      // decodifica e valida o token
       const payload = jwt.verify(
         token,
         process.env.JWT_SECRET as string
@@ -95,7 +87,6 @@ export async function POST(req: Request) {
         )
       }
 
-      // Validações adicionais
       if (cardNumber.length < 13 || cardNumber.length > 19) {
         return NextResponse.json(
           { message: "Número do cartão inválido" },
@@ -117,35 +108,44 @@ export async function POST(req: Request) {
         )
       }
 
-      // Extrair últimos 4 dígitos
       const lastFourDigits = cardNumber.slice(-4)
 
-      // Criar ou atualizar método de pagamento
-      const paymentMethod = await PaymentMethod.findOneAndUpdate(
-        { user: payload.sub },
-        {
-          user: payload.sub,
-          type,
-          lastFourDigits,
-          cardholderName: cardName,
-          isDefault: true
-        },
-        { upsert: true, new: true }
-      )
+      // Verificar se já existe um cartão com os mesmos últimos 4 dígitos
+      const existingCard = await PaymentMethod.findOne({
+        user: payload.sub,
+        lastFourDigits,
+        type
+      })
 
-      // Atualizar referência no usuário
-      await User.findByIdAndUpdate(
-        payload.sub,
-        { paymentMethod: paymentMethod._id }
-      )
+      if (existingCard) {
+        return NextResponse.json(
+          { message: "Já existe um cartão cadastrado com esses dados" },
+          { status: 400 }
+        )
+      }
+
+      // Criar novo método de pagamento
+      const paymentMethod = await PaymentMethod.create({
+        user: payload.sub,
+        type,
+        lastFourDigits,
+        cardholderName: cardName.trim(),
+        isDefault: false // Novo cartão não é padrão automaticamente
+      })
+
+      // Verificar se o documento foi criado
+      if (!paymentMethod) {
+        throw new Error('Falha ao criar método de pagamento')
+      }
 
       return NextResponse.json({
-        message: "Método de pagamento salvo com sucesso",
+        message: "Método de pagamento adicionado com sucesso",
         paymentMethod: {
           _id: paymentMethod._id,
           type: paymentMethod.type,
           lastFourDigits: paymentMethod.lastFourDigits,
           cardholderName: paymentMethod.cardholderName,
+          isDefault: paymentMethod.isDefault,
           createdAt: paymentMethod.createdAt
         }
       })

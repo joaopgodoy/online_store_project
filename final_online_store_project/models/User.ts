@@ -22,11 +22,10 @@ const UserSchema = new Schema({
     type: Boolean,
     default: false
   },
-  paymentMethod: {
+  paymentMethods: [{  // Mudança: de paymentMethod para paymentMethods (array)
     type: Schema.Types.ObjectId,
-    ref: 'PaymentMethod',
-    default: null
-  },
+    ref: 'PaymentMethod'
+  }],
   orders: [{
     type: Schema.Types.ObjectId,
     ref: 'Order'

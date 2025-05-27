@@ -39,6 +39,10 @@ const OrderSchema = new Schema({
     type: String,
     unique: true,
     sparse: true
+  },
+  completedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
