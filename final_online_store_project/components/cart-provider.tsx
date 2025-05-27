@@ -14,6 +14,7 @@ interface CartContextType {
   updateQuantity: (produtoId: string, quantidade: number) => void
   clearCart: () => void
   total: number
+  totalFixed: number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -187,6 +188,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   const total = items.reduce((sum, item) => sum + item.preco * item.quantidade, 0)
+  const totalFixed = parseFloat(total.toFixed(2))
 
   return (
     <CartContext.Provider
@@ -197,6 +199,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         clearCart,
         total,
+        totalFixed,
       }}
     >
       {children}

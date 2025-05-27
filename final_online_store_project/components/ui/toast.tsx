@@ -1,3 +1,4 @@
+// filepath: /home/peloro/Desktop/Condominio/online_store_project/final_online_store_project/components/ui/toast.tsx
 "use client"
 
 import * as React from "react"
@@ -31,7 +32,7 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
+          "destructive border-destructive bg-destructive text-destructive-foreground",
       },
     },
     defaultVariants: {

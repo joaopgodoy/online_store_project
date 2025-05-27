@@ -1,21 +1,18 @@
-import { NextResponse } from 'next/server'
-import connectDB from '@/lib/mongoose'
-import User from '@/models/User'
-import bcrypt from 'bcryptjs'
+import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import connectDB from "@/lib/mongoose"
+import User from "@/models/User"
 
-// GET endpoint to fetch all users
+// GET endpoint to fetch all users (admin only)
 export async function GET() {
   try {
     await connectDB()
-    
-    // Buscar todos os usuários, excluindo a senha
-    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 })
-    
+    const users = await User.find({}).select('-password')
     return NextResponse.json(users)
   } catch (error) {
     console.error('Erro ao buscar usuários:', error)
     return NextResponse.json(
-      { message: 'Erro interno do servidor' },
+      { message: "Erro interno do servidor" },
       { status: 500 }
     )
   }
@@ -47,7 +44,7 @@ export async function POST(req: Request) {
       password: hashedPassword,
       admin,
       paymentMethod: null,
-      order: []
+      orders: []
     })
 
     // Remover a senha antes de retornar

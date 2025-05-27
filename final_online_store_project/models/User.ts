@@ -23,17 +23,17 @@ const UserSchema = new Schema({
     default: false
   },
   paymentMethod: {
-    type: Schema.Types.ObjectId,
-    ref: 'PaymentMethod',
-    default: null
+    type: {
+      type: String,
+      enum: ['credit', 'debit']
+    },
+    lastFourDigits: String,
+    cardholderName: String,
+    createdAt: String
   },
   orders: [{
     type: Schema.Types.ObjectId,
     ref: 'Order'
-  }],
-  cartItems: [{
-    type: Schema.Types.ObjectId,
-    ref: 'CartItem'
   }]
 }, {
   timestamps: true
