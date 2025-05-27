@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Criar o usuário
+    // Criar o usuário com carrinho vazio
     const user = await User.create({
       name,
       email,
@@ -44,7 +44,8 @@ export async function POST(req: Request) {
       password: hashedPassword,
       admin,
       paymentMethod: null,
-      orders: []
+      orders: [],
+      cart: [] // Inicializar carrinho vazio
     })
 
     // Remover a senha antes de retornar

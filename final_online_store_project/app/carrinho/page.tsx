@@ -212,7 +212,9 @@ export default function CartPage() {
       
       if (orderResult) {
         setOrderCode(orderResult.pickupCode)
-        clearCart()
+        
+        // Esvaziar carrinho após compra finalizada
+        await clearCart()
         
         toast({
           title: "Compra finalizada com sucesso!",

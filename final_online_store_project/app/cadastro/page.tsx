@@ -84,9 +84,7 @@ export default function RegisterPage() {
         name: name,
         email,
         apartment: apartamento,
-        password: senha,
-        paymentMethod: null, // Sempre nulo no cadastro
-        order: [] // Inicializar com array vazio
+        password: senha
       })
 
       toast({

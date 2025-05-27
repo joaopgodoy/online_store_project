@@ -23,22 +23,28 @@ const UserSchema = new Schema({
     default: false
   },
   paymentMethod: {
-    type: {
-      type: String,
-      enum: ['credit', 'debit']
-    },
-    lastFourDigits: String,
-    cardholderName: String,
-    createdAt: String
+    type: Schema.Types.ObjectId,
+    ref: 'PaymentMethod',
+    default: null
   },
   orders: [{
     type: Schema.Types.ObjectId,
     ref: 'Order'
+  }],
+  cart: [{
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    }
   }]
 }, {
   timestamps: true
 })
 
-// evita redefinir o model no hot-reload do Next.js
-const User = models.User || model('User', UserSchema)
-export default User
+export default models.User || model('User', UserSchema)
