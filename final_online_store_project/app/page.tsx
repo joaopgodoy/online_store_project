@@ -15,8 +15,8 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative w-full h-[400px] md:h-[500px]">
         <Image
-          src="/placeholder.jpg?height=500&width=1200"
-          alt="Loja de Condomínio"
+          src="/center.jpeg?height=500&width=1200"
+          alt="Near Market Hero Image"
           fill
           className="object-cover"
           priority

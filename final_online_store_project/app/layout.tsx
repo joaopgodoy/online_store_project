@@ -13,8 +13,24 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Near Market",
-  description: "O Seu Supermercado em Casa"
+  title: "Near Market - O Seu Supermercado em Casa!",
+  description: "Supermercado online com entrega rápida no seu condomínio",
+  icons: {
+    icon: [
+      {
+        url: "/placeholder-icon.png",
+        sizes: "32x32",
+        type: "image/jpeg"
+      },
+      {
+        url: "/placeholder-icon.png",
+        sizes: "16x16",
+        type: "image/jpeg"
+      }
+    ],
+    shortcut: "placeholder-icon.png",
+    apple: "placeholder-icon.png"
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -24,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <CartProvider>
             <Header />
-            <main>{children}</main>
+            <main className="flex-grow">{children}</main>
             <Footer />
             <Toaster />
           </CartProvider>
