@@ -191,7 +191,7 @@ export default function AdminPage() {
         name: data.name,
         description: data.description,
         price,
-        image: data.image || "/placeholder.svg?height=300&width=300",
+        image: data.image || "/placeholder.jpg?height=300&width=300",
         category: data.category,
         inStock: quantity > 0 ? data.inStock : false,
         availableQuantity: quantity

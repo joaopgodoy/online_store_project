@@ -16,7 +16,7 @@ export default function ProductCard({ produto }: ProductCardProps) {
   const getDescription = () => produto.description || produto.descricao || ""
   const getPrice = () => produto.price || produto.preco || 0
   const getCategory = () => produto.category || produto.categoria || ""
-  const getImage = () => produto.image || produto.imagem || "/placeholder.svg?height=300&width=300"
+  const getImage = () => produto.image || produto.imagem || "/placeholder.jpg?height=300&width=300"
   const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
 
   return (

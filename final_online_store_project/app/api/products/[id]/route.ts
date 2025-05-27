@@ -52,7 +52,7 @@ export async function PUT(
         name,
         description,
         price: Number(price),
-        image: image || "/placeholder.svg?height=300&width=300",
+        image: image || "/placeholder.jpg?height=300&width=300",
         category,
         inStock: finalInStock, // Usar o status calculado
         availableQuantity: Number(availableQuantity)
