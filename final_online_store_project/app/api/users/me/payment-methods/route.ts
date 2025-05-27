@@ -66,7 +66,19 @@ export async function POST(req: Request) {
     }
 
     const token = authHeader.split(" ")[1]
-    const { cardNumber, cardName, cardExpiry, type } = await req.json()
+    
+    let requestData
+    try {
+      requestData = await req.json()
+    } catch (parseError) {
+      console.error('Erro ao fazer parse do JSON:', parseError)
+      return NextResponse.json(
+        { message: "Dados inválidos no corpo da requisição" },
+        { status: 400 }
+      )
+    }
+    
+    const { cardNumber, cardName, cardExpiry, type } = requestData
 
     try {
       // decodifica e valida o token
@@ -83,8 +95,30 @@ export async function POST(req: Request) {
         )
       }
 
+      // Validações adicionais
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        return NextResponse.json(
+          { message: "Número do cartão inválido" },
+          { status: 400 }
+        )
+      }
+
+      if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+        return NextResponse.json(
+          { message: "Data de validade deve estar no formato MM/AA" },
+          { status: 400 }
+        )
+      }
+
+      if (!['credit', 'debit'].includes(type)) {
+        return NextResponse.json(
+          { message: "Tipo de cartão inválido" },
+          { status: 400 }
+        )
+      }
+
       // Extrair últimos 4 dígitos
-      const lastFourDigits = cardNumber.replace(/\s/g, '').slice(-4)
+      const lastFourDigits = cardNumber.slice(-4)
 
       // Criar ou atualizar método de pagamento
       const paymentMethod = await PaymentMethod.findOneAndUpdate(
@@ -116,7 +150,8 @@ export async function POST(req: Request) {
         }
       })
 
-    } catch (err) {
+    } catch (jwtError) {
+      console.error('Erro JWT:', jwtError)
       return NextResponse.json(
         { message: "Token expirado ou inválido" },
         { status: 401 }

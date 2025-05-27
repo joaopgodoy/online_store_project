@@ -128,10 +128,11 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">name completo</Label>
+              <Label htmlFor="name">Nome Completo</Label>
               <Input
                 id="name"
                 type="text"
+                placeholder="Digite seu nome completo"
                 value={name}
                 onChange={(e) => setname(e.target.value)}
                 required
@@ -143,6 +144,7 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
+                placeholder="Digite seu email (ex: usuario@email.com)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -154,6 +156,7 @@ export default function RegisterPage() {
               <Input
                 id="apartamento"
                 type="text"
+                placeholder="Digite o número do seu apartamento"
                 value={apartamento}
                 onChange={(e) => setApartamento(e.target.value)}
                 required
@@ -165,6 +168,7 @@ export default function RegisterPage() {
               <Input
                 id="senha"
                 type="password"
+                placeholder="Digite uma senha segura"
                 value={senha}
                 onChange={(e) => {
                   setSenha(e.target.value)
@@ -182,6 +186,7 @@ export default function RegisterPage() {
               <Input
                 id="confirmaSenha"
                 type="password"
+                placeholder="Digite a senha novamente"
                 value={confirmaSenha}
                 onChange={(e) => setConfirmaSenha(e.target.value)}
                 required
@@ -200,7 +205,7 @@ export default function RegisterPage() {
             
             <p className="text-sm text-center">
               Já tem uma conta?{" "}
-              <Link href="/login" className="text-blue-600 hover:underline">
+              <Link href="/login" className="text-gray-600 hover:text-gray-800 hover:underline">
                 Faça login
               </Link>
             </p>

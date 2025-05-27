@@ -14,21 +14,15 @@ interface CartContextType {
   removeItem: (produtoId: string) => void
   updateQuantity: (produtoId: string, quantidade: number) => void
   clearCart: () => void
+  cancelCart: () => void
   total: number
   totalFixed: number
+  onProductUpdate?: () => void // Callback para refresh de produtos
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export function useCart() {
-  const context = useContext(CartContext)
-  if (!context) {
-    throw new Error('useCart deve ser usado dentro de um CartProvider')
-  }
-  return context
-}
-
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children, onProductUpdate }: { children: ReactNode; onProductUpdate?: () => void }) {
   const [items, setItems] = useState<CartItem[]>([])
   const { isAuthenticated } = useAuth()
 
@@ -157,6 +151,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       })
 
+      // Chamar callback para refresh de produtos se fornecido
+      if (onProductUpdate) {
+        await onProductUpdate()
+      }
+
       return true
     } catch (error) {
       console.error('Erro ao adicionar item ao carrinho:', error)
@@ -247,9 +246,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const clearCart = async () => {
+  const cancelCart = async () => {
     try {
-      // Reverter estoque de todos os itens
+      // Reverter estoque de todos os itens (usado quando cancelar carrinho)
       const promises = items.map(item => 
         fetch(`/api/products/${item.id}/stock`, {
           method: 'PUT',
@@ -265,6 +264,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       await Promise.all(promises)
 
+      // Se usuário está autenticado, limpar carrinho na database
+      if (isAuthenticated) {
+        const token = localStorage.getItem('token')
+        if (token) {
+          await fetch('/api/users/me/cart', {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao cancelar carrinho:', error)
+    } finally {
+      // Limpar carrinho local mesmo se houver erro na API
+      setItems([])
+      // Limpar localStorage também
+      localStorage.removeItem("cart")
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      // Apenas limpar carrinho após compra finalizada (estoque já foi processado)
+      
       // Se usuário está autenticado, limpar carrinho na database
       if (isAuthenticated) {
         const token = localStorage.getItem('token')
@@ -298,11 +323,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        cancelCart,
         total,
         totalFixed,
+        onProductUpdate
       }}
     >
       {children}
     </CartContext.Provider>
   )
+}
+
+export function useCart() {
+  const context = useContext(CartContext)
+  if (!context) {
+    throw new Error('useCart deve ser usado dentro de um CartProvider')
+  }
+  return context
 }

@@ -85,12 +85,82 @@ export default function CartPage() {
     }
   }
 
+  // Funções de formatação para os campos do cartão
+  const formatCardNumber = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    // Adiciona espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ').trim()
+  }
+
+  const formatExpiry = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    // Adiciona barra após 2 dígitos
+    if (numbers.length >= 2) {
+      return numbers.slice(0, 2) + '/' + numbers.slice(2, 4)
+    }
+    return numbers
+  }
+
+  const formatCvc = (value: string) => {
+    // Remove tudo que não é número e limita a 4 dígitos
+    return value.replace(/\D/g, '').slice(0, 4)
+  }
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCardNumber(e.target.value)
+    // Limita a 19 caracteres (16 números + 3 espaços)
+    if (formatted.length <= 19) {
+      setCardNumber(formatted)
+    }
+  }
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiry(e.target.value)
+    setCardExpiry(formatted)
+  }
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCvc(e.target.value)
+    setCardCvc(formatted)
+  }
+
   const savePaymentMethod = async () => {
     try {
       if (!cardNumber || !cardName || !cardExpiry || !cardCvc) {
         toast({
           title: "Erro",
           description: "Todos os campos do cartão são obrigatórios",
+          variant: "destructive"
+        })
+        return false
+      }
+
+      // Validações específicas
+      const cleanCardNumber = cardNumber.replace(/\s/g, '')
+      if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+        toast({
+          title: "Erro",
+          description: "Número do cartão deve ter entre 13 e 19 dígitos",
+          variant: "destructive"
+        })
+        return false
+      }
+
+      if (cardExpiry.length !== 5) {
+        toast({
+          title: "Erro",
+          description: "Data de validade deve estar no formato MM/AA",
+          variant: "destructive"
+        })
+        return false
+      }
+
+      if (cardCvc.length < 3) {
+        toast({
+          title: "Erro",
+          description: "CVC deve ter pelo menos 3 dígitos",
           variant: "destructive"
         })
         return false
@@ -107,22 +177,31 @@ export default function CartPage() {
         return false
       }
 
+      console.log('Enviando dados do cartão:', {
+        cardNumber: cleanCardNumber,
+        cardName,
+        cardExpiry,
+        type: cardType
+      })
+
       const response = await axios.post('/api/users/me/payment-methods', {
-        cardNumber,
+        cardNumber: cleanCardNumber,
         cardName,
         cardExpiry,
         type: cardType
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10 segundos de timeout
       })
 
       const newPaymentMethod = response.data.paymentMethod
       setPaymentMethods([newPaymentMethod])
       setSelectedPaymentMethod(newPaymentMethod._id)
       setShowNewCardForm(false)
-      
+
       // Limpar campos
       setCardNumber("")
       setCardName("")
@@ -136,10 +215,35 @@ export default function CartPage() {
 
       return true
     } catch (error: any) {
-      console.error('Erro ao salvar método de pagamento:', error)
+      console.error('Erro completo ao salvar método de pagamento:', error)
+      
+      // Log detalhado do erro
+      if (error.response) {
+        console.error('Dados da resposta:', error.response.data)
+        console.error('Status:', error.response.status)
+        console.error('Headers:', error.response.headers)
+      } else if (error.request) {
+        console.error('Request feito mas sem resposta:', error.request)
+      } else {
+        console.error('Erro na configuração da request:', error.message)
+      }
+      
+      let errorMessage = "Erro ao salvar método de pagamento"
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Sessão expirada. Faça login novamente."
+        router.push('/login')
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || "Dados do cartão inválidos"
+      } else if (error.response?.status === 500) {
+        errorMessage = "Erro interno do servidor. Tente novamente."
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = "Timeout na conexão. Tente novamente."
+      }
+      
       toast({
         title: "Erro",
-        description: error.response?.data?.message || "Erro ao salvar método de pagamento",
+        description: errorMessage,
         variant: "destructive"
       })
       return false
@@ -423,7 +527,8 @@ export default function CartPage() {
                               id="cardNumber"
                               placeholder="0000 0000 0000 0000"
                               value={cardNumber}
-                              onChange={(e) => setCardNumber(e.target.value)}
+                              onChange={handleCardNumberChange}
+                              maxLength={19}
                               required
                             />
                           </div>
@@ -434,7 +539,8 @@ export default function CartPage() {
                               id="cardName"
                               placeholder="Nome completo"
                               value={cardName}
-                              onChange={(e) => setCardName(e.target.value)}
+                              onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                              maxLength={50}
                               required
                             />
                           </div>
@@ -446,7 +552,8 @@ export default function CartPage() {
                                 id="cardExpiry"
                                 placeholder="MM/AA"
                                 value={cardExpiry}
-                                onChange={(e) => setCardExpiry(e.target.value)}
+                                onChange={handleExpiryChange}
+                                maxLength={5}
                                 required
                               />
                             </div>
@@ -456,7 +563,8 @@ export default function CartPage() {
                                 id="cardCvc"
                                 placeholder="123"
                                 value={cardCvc}
-                                onChange={(e) => setCardCvc(e.target.value)}
+                                onChange={handleCvcChange}
+                                maxLength={4}
                                 required
                               />
                             </div>
@@ -497,6 +605,7 @@ export default function CartPage() {
                   Este código é válido por 24 horas. Guarde-o com cuidado.
                 </p>
               </div>
+
               <div className="border-t pt-4">
                 <p className="font-medium mb-1">Resumo da compra:</p>
                 <p className="text-muted-foreground">Total: R$ {finalTotal.toFixed(2)}</p>

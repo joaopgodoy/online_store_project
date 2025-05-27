@@ -22,8 +22,7 @@ interface Order {
 interface PaymentMethod {
   _id: string
   type: string
-  lastFourDigits: string
-  cardholderName: string
+  lastFourDigits?: string
   createdAt: string
 }
 
@@ -189,10 +188,7 @@ export default function ProfilePage() {
                   <CreditCard className="h-5 w-5 mt-0.5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">
-                      {paymentMethod.type === 'credit' ? 'Crédito' : 'Débito'} •••• {paymentMethod.lastFourDigits}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Titular: {paymentMethod.cardholderName}
+                      {paymentMethod.type} •••• {paymentMethod.lastFourDigits}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Cadastrado em {formatDate(paymentMethod.createdAt)}
