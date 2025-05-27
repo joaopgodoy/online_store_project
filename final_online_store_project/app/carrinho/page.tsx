@@ -34,10 +34,14 @@ export default function CartPage() {
   const [cardCvc, setCardCvc] = useState("")
   const [orderCode, setOrderCode] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const [finalTotal, setFinalTotal] = useState(0) // Adicionar estado para salvar o total final
 
   const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault()
     setIsProcessing(true)
+
+    // Salvar o total antes de limpar o carrinho
+    setFinalTotal(total)
 
     // Simular processamento de pagamento
     setTimeout(() => {
@@ -46,7 +50,7 @@ export default function CartPage() {
       setOrderCode(code)
       setIsProcessing(false)
 
-      // Limpar carrinho
+      // Limpar carrinho APÓS salvar o total
       clearCart()
 
       // Mostrar mensagem de sucesso
@@ -55,6 +59,18 @@ export default function CartPage() {
         description: `Seu código de retirada é: ${code}`,
       })
     }, 1500)
+  }
+
+  // Função para resetar todos os estados e fechar o diálogo
+  const resetCheckoutState = () => {
+    setCheckoutOpen(false)
+    setFinalTotal(0)
+    setOrderCode("")
+    setCardNumber("")
+    setCardName("")
+    setCardExpiry("")
+    setCardCvc("")
+    setIsProcessing(false)
   }
 
   if (items.length === 0 && !orderCode) {
@@ -145,7 +161,14 @@ export default function CartPage() {
         </div>
       </div>
 
-      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+      <Dialog open={checkoutOpen} onOpenChange={(open) => {
+        if (!open && orderCode) {
+          // Se o diálogo está sendo fechado e há um código de pedido, resetar tudo
+          resetCheckoutState()
+        } else {
+          setCheckoutOpen(open)
+        }
+      }}>
         {!orderCode ? (
           <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleCheckout}>
@@ -228,14 +251,14 @@ export default function CartPage() {
               </div>
               <div className="border-t pt-4">
                 <p className="font-medium mb-1">Resumo da compra:</p>
-                <p className="text-muted-foreground">Total: R$ {total.toFixed(2)}</p>
+                <p className="text-muted-foreground">Total: R$ {finalTotal.toFixed(2)}</p>
                 <p className="text-muted-foreground">Data: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
             <DialogFooter className="flex flex-col gap-2">
               <Button
                 onClick={() => {
-                  setCheckoutOpen(false)
+                  resetCheckoutState()
                   router.push("/")
                 }}
                 className="w-full"
@@ -245,7 +268,7 @@ export default function CartPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setCheckoutOpen(false)
+                  resetCheckoutState()
                   router.push("/perfil")
                 }}
               >
