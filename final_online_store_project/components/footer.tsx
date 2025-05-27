@@ -1,7 +1,12 @@
+"use client"
+
 import Link from "next/link"
 import { Mail, Phone } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
 
 export default function Footer() {
+  const { isAuthenticated } = useAuth()
+
   return (
     <footer className="bg-muted py-8 border-t">
       <div className="container mx-auto px-4">
@@ -21,18 +26,31 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/categorias" className="text-muted-foreground hover:text-primary transition-colors">
-                  Categorias
+                <Link href="/produtos" className="text-muted-foreground hover:text-primary transition-colors">
+                  Produtos
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="text-muted-foreground hover:text-primary transition-colors">
-                  Login
+                <Link 
+                  href={isAuthenticated ? "/perfil" : "/login"} 
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {isAuthenticated ? "Meu Perfil" : "Login"}
                 </Link>
               </li>
+              {!isAuthenticated && (
+                <li>
+                  <Link 
+                    href="/cadastro" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Cadastro
+                  </Link>
+                </li>
+              )}
               <li>
-                <Link href="/cadastro" className="text-muted-foreground hover:text-primary transition-colors">
-                  Cadastro
+                <Link href="/carrinho" className="text-muted-foreground hover:text-primary transition-colors">
+                  Carrinho
                 </Link>
               </li>
             </ul>
@@ -52,7 +70,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-4 border-t text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Near Market. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Near Market. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
