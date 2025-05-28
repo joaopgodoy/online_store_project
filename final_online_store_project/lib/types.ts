@@ -11,6 +11,8 @@ export interface Produto {
   category?: string
   image?: string
   inStock?: boolean
+  availableQuantity?: number
+  estoque?: number
 }
 
 export interface Usuario {

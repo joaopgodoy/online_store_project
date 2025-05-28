@@ -46,16 +46,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Usuário não encontrado' }, { status: 404 })
     }
 
-    // Verificar se o produto existe
+    // Verificar se o produto existe e tem estoque
     const product = await Product.findById(productId)
     if (!product) {
       return NextResponse.json({ message: 'Produto não encontrado' }, { status: 404 })
+    }
+
+    // Verificar se o produto está disponível
+    if (!product.inStock) {
+      return NextResponse.json({ message: 'Produto indisponível' }, { status: 400 })
     }
 
     // Verificar se o item já existe no carrinho
     const existingItemIndex = user.cart.findIndex((item: any) => 
       item.product.toString() === productId
     )
+
+    const currentCartQuantity = existingItemIndex > -1 ? user.cart[existingItemIndex].quantity : 0
+    const totalDesiredQuantity = currentCartQuantity + quantity
+
+    // Verificar se há estoque suficiente
+    if (product.availableQuantity < totalDesiredQuantity) {
+      return NextResponse.json({ 
+        message: `Estoque insuficiente. Disponível: ${product.availableQuantity}, já no carrinho: ${currentCartQuantity}`,
+        availableQuantity: product.availableQuantity,
+        currentCartQuantity
+      }, { status: 400 })
+    }
 
     if (existingItemIndex > -1) {
       // Atualizar quantidade
@@ -89,6 +106,26 @@ export async function PUT(request: Request) {
     const user = await User.findById(decoded.sub)
     if (!user) {
       return NextResponse.json({ message: 'Usuário não encontrado' }, { status: 404 })
+    }
+
+    // Verificar se o produto existe e tem estoque (apenas se quantidade > 0)
+    if (quantity > 0) {
+      const product = await Product.findById(productId)
+      if (!product) {
+        return NextResponse.json({ message: 'Produto não encontrado' }, { status: 404 })
+      }
+
+      if (!product.inStock) {
+        return NextResponse.json({ message: 'Produto indisponível' }, { status: 400 })
+      }
+
+      // Verificar se há estoque suficiente
+      if (product.availableQuantity < quantity) {
+        return NextResponse.json({ 
+          message: `Estoque insuficiente. Disponível: ${product.availableQuantity}`,
+          availableQuantity: product.availableQuantity
+        }, { status: 400 })
+      }
     }
 
     if (quantity <= 0) {

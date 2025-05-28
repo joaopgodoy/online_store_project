@@ -50,7 +50,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       try {
         setItems(JSON.parse(savedCart))
       } catch (error) {
-        console.error("Erro ao carregar carrinho:", error)
+        // Silent error handling - user will see empty cart if load fails
       }
     }
   }
@@ -82,7 +82,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         setItems(cartItems)
       }
     } catch (error) {
-      console.error('Erro ao carregar carrinho da database:', error)
+      // Silent error handling - cart will remain in current state
     }
   }
 
@@ -103,9 +103,21 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         body: JSON.stringify({ productId, quantity })
       })
 
-      return response.ok
+      if (!response.ok) {
+        const errorData = await response.json()
+        // Se é erro de estoque, mostrar mensagem específica
+        if (response.status === 400 && errorData.message?.includes('Estoque')) {
+          throw new Error(errorData.message)
+        }
+        return false
+      }
+
+      return true
     } catch (error) {
-      console.error('Erro ao salvar no banco:', error)
+      // Re-throw para que possa ser capturado pelo addItem e mostrado ao usuário
+      if (error instanceof Error && error.message.includes('Estoque')) {
+        throw error
+      }
       return false
     }
   }
@@ -120,30 +132,18 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       // Verificar se o item já existe no carrinho
       const existingItem = items.find(item => item.id === produto.id)
       
-      // Usar a API PUT para atualizar o estoque
-      const response = await fetch(`/api/products/${produto.id}/stock`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          quantity: quantidade,
-          action: 'add'
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Erro ao atualizar estoque')
+      // Primeiro tentar salvar no banco de dados (que fará a validação de estoque)
+      try {
+        const saved = await saveToDatabase(produto.id, quantidade)
+        if (!saved) {
+          return false
+        }
+      } catch (stockError) {
+        // Se é erro de estoque, re-throw para que seja tratado pela UI
+        throw stockError
       }
 
-      // Salvar na database (obrigatório para usuários autenticados)
-      const saved = await saveToDatabase(produto.id, quantidade)
-      if (!saved) {
-        throw new Error('Erro ao salvar no carrinho')
-      }
-
-      // Atualizar carrinho local
+      // Se salvou com sucesso no banco, atualizar carrinho local
       setItems((prevItems) => {
         if (existingItem) {
           return prevItems.map((item) => 
@@ -163,7 +163,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       return true
     } catch (error) {
-      console.error('Erro ao adicionar item ao carrinho:', error)
+      // Error already handled - return false to indicate failure
+      // Re-throw errors relacionados a estoque para que possam ser tratados pela UI
+      if (error instanceof Error && error.message.includes('Estoque')) {
+        throw error
+      }
       return false
     }
   }
@@ -175,30 +179,13 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         return
       }
 
-      // Encontrar o item que será removido
-      const itemToRemove = items.find(item => item.id === produtoId)
-      
-      if (itemToRemove) {
-        // Usar a API PUT para reverter o estoque
-        await fetch(`/api/products/${produtoId}/stock`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            quantity: itemToRemove.quantidade,
-            action: 'remove'
-          }),
-        })
-
-        // Atualizar na database
-        await saveToDatabase(produtoId, 0, true)
-      }
+      // Atualizar na database (remover do carrinho)
+      await saveToDatabase(produtoId, 0, true)
 
       // Remover do carrinho local
       setItems((prevItems) => prevItems.filter((item) => item.id !== produtoId))
     } catch (error) {
-      console.error('Erro ao remover item do carrinho:', error)
+      // Silent error handling
       // Mesmo com erro na API, remove do carrinho local para não travar a UX
       setItems((prevItems) => prevItems.filter((item) => item.id !== produtoId))
     }
@@ -220,25 +207,17 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       const currentItem = items.find(item => item.id === produtoId)
       if (!currentItem) return
 
-      const quantityDifference = novaQuantidade - currentItem.quantidade
-
-      // Atualizar estoque se houver mudança na quantidade
-      if (quantityDifference !== 0) {
-        const response = await fetch(`/api/products/${produtoId}/stock`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            quantity: Math.abs(quantityDifference),
-            action: quantityDifference > 0 ? 'add' : 'remove'
-          }),
-        })
-
-        if (response.ok) {
-          // Atualizar na database
-          await saveToDatabase(produtoId, novaQuantidade, true)
+      // Tentar atualizar na database (que fará a validação de estoque)
+      try {
+        const success = await saveToDatabase(produtoId, novaQuantidade, true)
+        if (!success) {
+          // Se falhou, não atualizar o carrinho local
+          return
         }
+      } catch (stockError) {
+        // Se é erro de estoque, não atualizar e possivelmente notificar
+        console.warn('Erro de estoque ao atualizar quantidade:', stockError)
+        return
       }
 
       // Atualizar quantidade no carrinho local
@@ -248,13 +227,8 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         )
       )
     } catch (error) {
-      console.error('Erro ao atualizar quantidade:', error)
-      // Em caso de erro, ainda atualiza localmente para não travar a UX
-      setItems((prevItems) => 
-        prevItems.map((item) => 
-          item.id === produtoId ? { ...item, quantidade: novaQuantidade } : item
-        )
-      )
+      // Silent error handling
+      // Em caso de erro, não atualizar para evitar inconsistências
     }
   }
 
@@ -265,16 +239,40 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         return
       }
 
-      // Reverter estoque de todos os itens (usado quando cancelar carrinho)
+      // Limpar carrinho na database
+      const token = localStorage.getItem('token')
+      if (token) {
+        await fetch('/api/users/me/cart', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      }
+    } catch (error) {
+      // Silent error handling
+    } finally {
+      // Limpar carrinho local mesmo se houver erro na API
+      setItems([])
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return
+      }
+
+      // Quando finalizar compra, decrementar estoque de todos os itens
       const promises = items.map(item => 
         fetch(`/api/products/${item.id}/stock`, {
-          method: 'PUT',
+          method: 'PATCH', // Usar PATCH para operação de compra final
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ 
-            quantity: item.quantidade,
-            action: 'remove'
+            quantity: item.quantidade
           }),
         })
       )
@@ -292,32 +290,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         })
       }
     } catch (error) {
-      console.error('Erro ao cancelar carrinho:', error)
-    } finally {
-      // Limpar carrinho local mesmo se houver erro na API
-      setItems([])
-    }
-  }
-
-  const clearCart = async () => {
-    try {
-      // Verificar se o usuário está autenticado
-      if (!isAuthenticated) {
-        return
-      }
-
-      // Apenas limpar carrinho após compra finalizada (estoque já foi processado)
-      const token = localStorage.getItem('token')
-      if (token) {
-        await fetch('/api/users/me/cart', {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-      }
-    } catch (error) {
-      console.error('Erro ao limpar carrinho:', error)
+      // Silent error handling
     } finally {
       // Limpar carrinho local mesmo se houver erro na API
       setItems([])

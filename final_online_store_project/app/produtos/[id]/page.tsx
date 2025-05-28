@@ -21,7 +21,7 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const { addItem } = useCart()
+  const { addItem, items } = useCart()
   const { products, loading, error, updateProduct } = useProducts()
   const { isAuthenticated } = useAuth()
   const [quantidade, setQuantidade] = useState(1)
@@ -75,7 +75,9 @@ export default function ProductPage({ params }: ProductPageProps) {
   const getAvailableQuantity = () => (produto as any)?.availableQuantity ?? (produto as any)?.estoque ?? 0
 
   const incrementarQuantidade = () => {
-    const maxQuantity = getAvailableQuantity()
+    const itemNoCarrinho = items.find(item => item.id === produto.id)
+    const quantidadeJaNoCarrinho = itemNoCarrinho ? itemNoCarrinho.quantidade : 0
+    const maxQuantity = getAvailableQuantity() - quantidadeJaNoCarrinho
     setQuantidade((prev) => (prev < maxQuantity ? prev + 1 : prev))
   }
 
@@ -96,6 +98,21 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     if (!getAvailability() || getAvailableQuantity() === 0) return
 
+    // Verificar se já tem este produto no carrinho
+    const itemNoCarrinho = items.find(item => item.id === produto.id)
+    const quantidadeJaNoCarrinho = itemNoCarrinho ? itemNoCarrinho.quantidade : 0
+    const quantidadeTotalDesejada = quantidadeJaNoCarrinho + quantidade
+
+    // Verificar se a quantidade total não excede o estoque disponível
+    if (quantidadeTotalDesejada > getAvailableQuantity()) {
+      toast({
+        title: "Estoque insuficiente",
+        description: `Você já tem ${quantidadeJaNoCarrinho} unidade(s) no carrinho. Máximo disponível: ${getAvailableQuantity()}`,
+        variant: "destructive"
+      })
+      return
+    }
+
     // Normalizar o produto para o formato esperado pelo carrinho
     const produtoNormalizado = {
       id: produto.id,
@@ -107,32 +124,56 @@ export default function ProductPage({ params }: ProductPageProps) {
       disponivel: getAvailability()
     }
 
-    // Tentar adicionar ao carrinho com a quantidade selecionada
-    const success = await addItem(produtoNormalizado, quantidade)
+    try {
+      // Tentar adicionar ao carrinho com a quantidade selecionada
+      const success = await addItem(produtoNormalizado, quantidade)
 
-    if (success) {
-      // Atualizar o produto específico para refletir a mudança no estoque em tempo real
-      await updateProduct(produto.id)
-      
-      toast({
-        title: "Produto adicionado ao carrinho",
-        description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
-      })
-      
-      // Resetar quantidade para 1 após adicionar
-      setQuantidade(1)
-    } else {
-      toast({
-        title: "Erro ao adicionar produto",
-        description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
-        variant: "destructive"
-      })
+      if (success) {
+        // Atualizar o produto específico para refletir a mudança no estoque em tempo real
+        await updateProduct(produto.id)
+        
+        toast({
+          title: "Produto adicionado ao carrinho",
+          description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
+        })
+        
+        // Resetar quantidade para 1 após adicionar
+        setQuantidade(1)
+      } else {
+        toast({
+          title: "Erro ao adicionar produto",
+          description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      // Capturar erros específicos de estoque
+      if (error instanceof Error && error.message.includes('Estoque')) {
+        toast({
+          title: "Estoque insuficiente",
+          description: error.message,
+          variant: "destructive"
+        })
+        // Atualizar produto para refletir estoque atual
+        await updateProduct(produto.id)
+      } else {
+        toast({
+          title: "Erro ao adicionar produto",
+          description: "Não foi possível adicionar o produto ao carrinho. Tente novamente.",
+          variant: "destructive"
+        })
+      }
     }
   }
 
   // Verificar se o produto está disponível e tem estoque
   const isOutOfStock = !getAvailability() || getAvailableQuantity() === 0
   const availableQty = getAvailableQuantity()
+  
+  // Verificar quantidade já no carrinho
+  const itemNoCarrinho = items.find(item => item.id === produto.id)
+  const quantidadeJaNoCarrinho = itemNoCarrinho ? itemNoCarrinho.quantidade : 0
+  const quantidadeDisponivel = availableQty - quantidadeJaNoCarrinho
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -178,7 +219,17 @@ export default function ProductPage({ params }: ProductPageProps) {
             </Badge>
           </div>
 
-          {!isOutOfStock ? (
+          {/* Mostrar quantidade no carrinho se houver */}
+          {quantidadeJaNoCarrinho > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">Já no carrinho:</span>
+              <Badge variant="secondary">
+                {quantidadeJaNoCarrinho} {quantidadeJaNoCarrinho === 1 ? "unidade" : "unidades"}
+              </Badge>
+            </div>
+          )}
+
+          {!isOutOfStock && quantidadeDisponivel > 0 ? (
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium">Quantidade:</span>
@@ -197,15 +248,15 @@ export default function ProductPage({ params }: ProductPageProps) {
                     variant="outline"
                     size="sm"
                     onClick={incrementarQuantidade}
-                    disabled={quantidade >= availableQty}
+                    disabled={quantidade >= quantidadeDisponivel}
                     className="w-8 h-8 p-0"
                   >
                     +
                   </Button>
                 </div>
-                {quantidade >= availableQty && (
+                {quantidade >= quantidadeDisponivel && quantidadeDisponivel > 0 && (
                   <span className="text-xs text-muted-foreground">
-                    Máximo valor atingido!
+                    Máximo disponível atingido!
                   </span>
                 )}
               </div>
@@ -214,7 +265,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 onClick={handleAddToCart}
                 className="w-full"
                 size="lg"
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || quantidadeDisponivel === 0}
               >
                 🛒 Adicionar ao Carrinho
               </Button>
@@ -223,10 +274,16 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="space-y-4">
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <p className="text-destructive font-medium">
-                  {getAvailability() ? "Produto sem estoque" : "Produto indisponível"}
+                  {getAvailability() 
+                    ? (quantidadeJaNoCarrinho > 0 
+                        ? "Quantidade máxima já está no carrinho" 
+                        : "Produto sem estoque")
+                    : "Produto indisponível"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Este produto não está disponível para compra no momento.
+                  {quantidadeJaNoCarrinho > 0 
+                    ? "Você já adicionou toda a quantidade disponível deste produto ao carrinho."
+                    : "Este produto não está disponível para compra no momento."}
                 </p>
               </div>
               <Button
@@ -234,7 +291,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 className="w-full"
                 size="lg"
               >
-                Produto Indisponível
+                {quantidadeJaNoCarrinho > 0 ? "Quantidade Máxima no Carrinho" : "Produto Indisponível"}
               </Button>
             </div>
           )}

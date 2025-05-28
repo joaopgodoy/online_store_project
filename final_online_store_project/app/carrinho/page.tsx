@@ -414,7 +414,9 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl md:text-3xl font-bold mb-8">Seu Carrinho</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold">Seu Carrinho</h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
@@ -451,6 +453,16 @@ export default function CartPage() {
                 </Button>
               </div>
             ))}
+          </div>
+          
+          {/* Botão Continuar Comprando abaixo dos produtos */}
+          <div className="mt-6">
+            <Button variant="outline" asChild className="w-full">
+              <Link href="/produtos">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Continuar Comprando
+              </Link>
+            </Button>
           </div>
         </div>
 
