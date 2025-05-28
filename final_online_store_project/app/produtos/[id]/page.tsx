@@ -78,6 +78,16 @@ export default function ProductPage({ params }: ProductPageProps) {
     const itemNoCarrinho = items.find(item => item.id === produto.id)
     const quantidadeJaNoCarrinho = itemNoCarrinho ? itemNoCarrinho.quantidade : 0
     const maxQuantity = getAvailableQuantity() - quantidadeJaNoCarrinho
+    
+    if (quantidade >= maxQuantity) {
+      toast({
+        title: "Quantidade máxima atingida",
+        description: `Você já selecionou a quantidade máxima disponível (${maxQuantity} ${maxQuantity === 1 ? 'unidade' : 'unidades'}).`,
+        variant: "destructive"
+      })
+      return
+    }
+    
     setQuantidade((prev) => (prev < maxQuantity ? prev + 1 : prev))
   }
 

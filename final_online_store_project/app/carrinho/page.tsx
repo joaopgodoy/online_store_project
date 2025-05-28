@@ -12,6 +12,7 @@ import axios from "axios"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/components/auth-provider"
+import { useProducts } from "@/hooks/use-products"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -40,6 +41,7 @@ export default function CartPage() {
   const { toast } = useToast()
   const { user, isAuthenticated } = useAuth()
   const { items, removeItem, updateQuantity, total, clearCart } = useCart()
+  const { products } = useProducts()
   
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
@@ -57,6 +59,29 @@ export default function CartPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [finalTotal, setFinalTotal] = useState(0)
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false)
+
+  // Função para obter estoque disponível de um produto
+  const getAvailableStock = (productId: string) => {
+    const product = products.find(p => p.id === productId)
+    return product?.availableQuantity ?? product?.estoque ?? 0
+  }
+
+  // Função para incrementar quantidade com validação de estoque
+  const handleIncrementQuantity = (item: any) => {
+    const availableStock = getAvailableStock(item.id)
+    const currentQuantityInCart = item.quantidade
+    
+    if (currentQuantityInCart >= availableStock) {
+      toast({
+        title: "Estoque insuficiente",
+        description: `Quantidade máxima disponível atingida (${availableStock} ${availableStock === 1 ? 'unidade' : 'unidades'}).`,
+        variant: "destructive"
+      })
+      return
+    }
+    
+    updateQuantity(item.id, item.quantidade + 1)
+  }
 
   // Buscar métodos de pagamento quando abrir o checkout
   useEffect(() => {
@@ -421,7 +446,11 @@ export default function CartPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="space-y-4">
-            {items.map((item) => (
+            {items.map((item) => {
+              const availableStock = getAvailableStock(item.id)
+              const isMaxQuantity = item.quantidade >= availableStock
+              
+              return (
               <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
                 <div className="relative w-20 h-20 overflow-hidden rounded-md">
                   <Image
@@ -436,6 +465,11 @@ export default function CartPage() {
                   <h3 className="font-medium">{item.name}</h3>
                   <p className="text-sm text-muted-foreground">{item.categoria}</p>
                   <p className="font-semibold">R$ {item.preco.toFixed(2)}</p>
+                  {isMaxQuantity && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Quantidade máxima atingida
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -443,7 +477,12 @@ export default function CartPage() {
                     <Minus className="h-4 w-4" />
                   </Button>
                   <span className="w-8 text-center">{item.quantidade}</span>
-                  <Button variant="outline" size="icon" onClick={() => updateQuantity(item.id, item.quantidade + 1)}>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleIncrementQuantity(item)}
+                    disabled={isMaxQuantity}
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
@@ -452,7 +491,8 @@ export default function CartPage() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-            ))}
+              )
+            })}
           </div>
           
           {/* Botão Continuar Comprando abaixo dos produtos */}
