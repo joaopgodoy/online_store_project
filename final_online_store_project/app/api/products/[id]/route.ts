@@ -3,6 +3,65 @@ import connectDB from '@/lib/mongoose'
 import Product from '@/models/Product'
 import mongoose from 'mongoose'
 
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await connectDB()
+    
+    const { id } = params
+
+    // Validar se o ID é válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: 'ID de produto inválido' },
+        { status: 400 }
+      )
+    }
+
+    // Buscar produto por ID
+    const product = await Product.findById(id)
+
+    if (!product) {
+      return NextResponse.json(
+        { message: 'Produto não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Transformar dados para o formato esperado pela aplicação
+    const transformedProduct = {
+      id: product._id.toString(),
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image,
+      category: product.category,
+      inStock: product.inStock && product.availableQuantity > 0,
+      availableQuantity: product.availableQuantity,
+      sold: product.sold,
+      // Campos compatíveis com interface antiga
+      descricao: product.description,
+      preco: product.price,
+      categoria: product.category,
+      imagem: product.image,
+      disponivel: product.inStock && product.availableQuantity > 0,
+      estoque: product.availableQuantity,
+      vendidos: product.sold
+    }
+
+    return NextResponse.json(transformedProduct)
+
+  } catch (error) {
+    console.error('Erro ao buscar produto:', error)
+    return NextResponse.json(
+      { message: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }

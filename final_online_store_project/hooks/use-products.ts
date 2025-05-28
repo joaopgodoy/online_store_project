@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { Produto } from '@/lib/types'
 
 export function useProducts() {
@@ -8,7 +8,7 @@ export function useProducts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/products', {
@@ -26,11 +26,35 @@ export function useProducts() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Função para atualizar um produto específico sem recarregar toda a lista
+  const updateProduct = useCallback(async (productId: string) => {
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        cache: 'no-store'
+      })
+      
+      if (response.ok) {
+        const updatedProduct = await response.json()
+        setProducts(prev => prev.map(product => 
+          product.id === productId ? updatedProduct : product
+        ))
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar produto:', err)
+    }
+  }, [])
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [fetchProducts])
 
-  return { products, loading, error, refetch: fetchProducts }
+  return { 
+    products, 
+    loading, 
+    error, 
+    refetch: fetchProducts,
+    updateProduct
+  }
 }

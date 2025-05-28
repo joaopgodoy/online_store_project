@@ -158,7 +158,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       // Chamar callback para refresh de produtos se fornecido
       if (onProductUpdate) {
-        await onProductUpdate()
+        onProductUpdate()
       }
 
       return true

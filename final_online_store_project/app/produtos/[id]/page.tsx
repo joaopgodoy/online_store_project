@@ -22,7 +22,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { addItem } = useCart()
-  const { products, loading, error } = useProducts()
+  const { products, loading, error, updateProduct } = useProducts()
   const { isAuthenticated } = useAuth()
   const [quantidade, setQuantidade] = useState(1)
   const [productId, setProductId] = useState<string | null>(null)
@@ -83,40 +83,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     setQuantidade((prev) => (prev > 1 ? prev - 1 : 1))
   }
 
-  const adicionarAoCarrinho = async () => {
-    if (!getAvailability() || getAvailableQuantity() === 0) return
-
-    // Normalizar o produto para o formato esperado pelo carrinho
-    const produtoNormalizado = {
-      id: produto.id,
-      name: getName(),
-      descricao: getDescription(),
-      preco: getPrice(),
-      categoria: getCategory(),
-      imagem: getImage(),
-      disponivel: getAvailability()
-    }
-
-    // Tentar adicionar ao carrinho com a quantidade selecionada
-    const success = await addItem(produtoNormalizado, quantidade)
-
-    if (success) {
-      toast({
-        title: "Produto adicionado ao carrinho",
-        description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
-      })
-      
-      // Resetar quantidade para 1 após adicionar
-      setQuantidade(1)
-    } else {
-      toast({
-        title: "Erro ao adicionar produto",
-        description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
-        variant: "destructive"
-      })
-    }
-  }
-
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       toast({
@@ -145,6 +111,9 @@ export default function ProductPage({ params }: ProductPageProps) {
     const success = await addItem(produtoNormalizado, quantidade)
 
     if (success) {
+      // Atualizar o produto específico para refletir a mudança no estoque em tempo real
+      await updateProduct(produto.id)
+      
       toast({
         title: "Produto adicionado ao carrinho",
         description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
