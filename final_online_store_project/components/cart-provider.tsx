@@ -31,7 +31,9 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
     if (isAuthenticated) {
       loadCartFromDatabase()
     } else {
-      loadCartFromLocalStorage()
+      // Limpar carrinho local quando não estiver autenticado
+      setItems([])
+      localStorage.removeItem("cart")
     }
   }, [isAuthenticated])
 
@@ -110,6 +112,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   const addItem = async (produto: Produto, quantidade: number = 1): Promise<boolean> => {
     try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return false
+      }
+
       // Verificar se o item já existe no carrinho
       const existingItem = items.find(item => item.id === produto.id)
       
@@ -130,12 +137,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         throw new Error(errorData.message || 'Erro ao atualizar estoque')
       }
 
-      // Se usuário está autenticado, salvar na database
-      if (isAuthenticated) {
-        const saved = await saveToDatabase(produto.id, quantidade)
-        if (!saved) {
-          console.warn('Erro ao salvar na database, continuando com localStorage')
-        }
+      // Salvar na database (obrigatório para usuários autenticados)
+      const saved = await saveToDatabase(produto.id, quantidade)
+      if (!saved) {
+        throw new Error('Erro ao salvar no carrinho')
       }
 
       // Atualizar carrinho local
@@ -165,6 +170,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   const removeItem = async (produtoId: string) => {
     try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return
+      }
+
       // Encontrar o item que será removido
       const itemToRemove = items.find(item => item.id === produtoId)
       
@@ -181,10 +191,8 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
           }),
         })
 
-        // Se usuário está autenticado, atualizar na database
-        if (isAuthenticated) {
-          await saveToDatabase(produtoId, 0, true)
-        }
+        // Atualizar na database
+        await saveToDatabase(produtoId, 0, true)
       }
 
       // Remover do carrinho local
@@ -197,35 +205,39 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
   }
 
   const updateQuantity = async (produtoId: string, novaQuantidade: number) => {
-    if (novaQuantidade <= 0) {
-      removeItem(produtoId)
-      return
-    }
-
     try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return
+      }
+
+      if (novaQuantidade <= 0) {
+        await removeItem(produtoId)
+        return
+      }
+
       // Encontrar o item atual
       const currentItem = items.find(item => item.id === produtoId)
-      
-      if (currentItem) {
-        const quantityDifference = novaQuantidade - currentItem.quantidade
-        
-        if (quantityDifference !== 0) {
-          // Usar a API PUT para atualizar o estoque
-          await fetch(`/api/products/${produtoId}/stock`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              quantity: Math.abs(quantityDifference),
-              action: quantityDifference > 0 ? 'add' : 'remove'
-            }),
-          })
+      if (!currentItem) return
 
-          // Se usuário está autenticado, atualizar na database
-          if (isAuthenticated) {
-            await saveToDatabase(produtoId, novaQuantidade, true)
-          }
+      const quantityDifference = novaQuantidade - currentItem.quantidade
+
+      // Atualizar estoque se houver mudança na quantidade
+      if (quantityDifference !== 0) {
+        const response = await fetch(`/api/products/${produtoId}/stock`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            quantity: Math.abs(quantityDifference),
+            action: quantityDifference > 0 ? 'add' : 'remove'
+          }),
+        })
+
+        if (response.ok) {
+          // Atualizar na database
+          await saveToDatabase(produtoId, novaQuantidade, true)
         }
       }
 
@@ -248,6 +260,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   const cancelCart = async () => {
     try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return
+      }
+
       // Reverter estoque de todos os itens (usado quando cancelar carrinho)
       const promises = items.map(item => 
         fetch(`/api/products/${item.id}/stock`, {
@@ -264,51 +281,46 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       await Promise.all(promises)
 
-      // Se usuário está autenticado, limpar carrinho na database
-      if (isAuthenticated) {
-        const token = localStorage.getItem('token')
-        if (token) {
-          await fetch('/api/users/me/cart', {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-        }
+      // Limpar carrinho na database
+      const token = localStorage.getItem('token')
+      if (token) {
+        await fetch('/api/users/me/cart', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
       }
     } catch (error) {
       console.error('Erro ao cancelar carrinho:', error)
     } finally {
       // Limpar carrinho local mesmo se houver erro na API
       setItems([])
-      // Limpar localStorage também
-      localStorage.removeItem("cart")
     }
   }
 
   const clearCart = async () => {
     try {
+      // Verificar se o usuário está autenticado
+      if (!isAuthenticated) {
+        return
+      }
+
       // Apenas limpar carrinho após compra finalizada (estoque já foi processado)
-      
-      // Se usuário está autenticado, limpar carrinho na database
-      if (isAuthenticated) {
-        const token = localStorage.getItem('token')
-        if (token) {
-          await fetch('/api/users/me/cart', {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-        }
+      const token = localStorage.getItem('token')
+      if (token) {
+        await fetch('/api/users/me/cart', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
       }
     } catch (error) {
       console.error('Erro ao limpar carrinho:', error)
     } finally {
       // Limpar carrinho local mesmo se houver erro na API
       setItems([])
-      // Limpar localStorage também
-      localStorage.removeItem("cart")
     }
   }
 

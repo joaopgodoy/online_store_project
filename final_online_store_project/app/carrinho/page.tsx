@@ -377,6 +377,28 @@ export default function CartPage() {
     setSelectedPaymentMethod("")
   }
 
+  // Verificar autenticação no carregamento da página
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para acessar seu carrinho.",
+        variant: "destructive"
+      })
+      router.push('/login')
+    }
+  }, [isAuthenticated, router, toast])
+
+  // Se não estiver autenticado, não renderizar nada
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto py-16 px-4 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p>Redirecionando para login...</p>
+      </div>
+    )
+  }
+
   if (items.length === 0 && !orderCode) {
     return (
       <div className="container mx-auto py-16 px-4 text-center">

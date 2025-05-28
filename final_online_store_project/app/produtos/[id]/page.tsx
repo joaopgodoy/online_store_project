@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/components/cart-provider"
 import { useProducts } from "@/hooks/use-products"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from '@/components/auth-provider'
 
 interface ProductPageProps {
   params: Promise<{
@@ -22,6 +23,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const { toast } = useToast()
   const { addItem } = useCart()
   const { products, loading, error } = useProducts()
+  const { isAuthenticated } = useAuth()
   const [quantidade, setQuantidade] = useState(1)
   const [productId, setProductId] = useState<string | null>(null)
 
@@ -82,6 +84,50 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const adicionarAoCarrinho = async () => {
+    if (!getAvailability() || getAvailableQuantity() === 0) return
+
+    // Normalizar o produto para o formato esperado pelo carrinho
+    const produtoNormalizado = {
+      id: produto.id,
+      name: getName(),
+      descricao: getDescription(),
+      preco: getPrice(),
+      categoria: getCategory(),
+      imagem: getImage(),
+      disponivel: getAvailability()
+    }
+
+    // Tentar adicionar ao carrinho com a quantidade selecionada
+    const success = await addItem(produtoNormalizado, quantidade)
+
+    if (success) {
+      toast({
+        title: "Produto adicionado ao carrinho",
+        description: `${quantidade}x ${getName()} foi adicionado ao seu carrinho.`,
+      })
+      
+      // Resetar quantidade para 1 após adicionar
+      setQuantidade(1)
+    } else {
+      toast({
+        title: "Erro ao adicionar produto",
+        description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para adicionar produtos ao carrinho.",
+        variant: "destructive"
+      })
+      router.push('/login')
+      return
+    }
+
     if (!getAvailability() || getAvailableQuantity() === 0) return
 
     // Normalizar o produto para o formato esperado pelo carrinho
@@ -196,7 +242,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
 
               <Button
-                onClick={adicionarAoCarrinho}
+                onClick={handleAddToCart}
                 className="w-full"
                 size="lg"
                 disabled={isOutOfStock}
