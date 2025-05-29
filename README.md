@@ -323,12 +323,14 @@ O servidor estará disponível em: `http://localhost:3000`
 
 ### Estrutura do Projeto
 
-```
+   ```
 final_online_store_project/
-├── app/                    # Páginas e rotas da aplicação
+├── app/                   # Páginas e rotas da aplicação
 │   ├── admin/             # Painel administrativo
 │   ├── api/               # API routes (backend)
+│   ├── cadastro/          # Página de cadastro/registro
 │   ├── carrinho/          # Página do carrinho
+│   ├── categorias/        # Páginas de categorias de produtos
 │   ├── login/             # Página de login/cadastro
 │   ├── perfil/            # Página de perfil do usuário
 │   └── produtos/          # Páginas de produtos
@@ -338,8 +340,9 @@ final_online_store_project/
 ├── lib/                   # Utilitários e configurações
 ├── models/                # Modelos do MongoDB
 ├── public/                # Arquivos estáticos
+├── styles/                # Arquivos de estilo CSS
 └── types/                 # Definições de tipos TypeScript
-```
+   ```
 
 ### Scripts Disponíveis
 
