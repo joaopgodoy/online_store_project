@@ -266,7 +266,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       // Quando finalizar compra, decrementar estoque de todos os itens
       const promises = items.map(item => 
-        fetch(`/api/products/${item.id}/stock`, {
+        fetch(`/api/products/${item.id}`, {
           method: 'PATCH', // Usar PATCH para operação de compra final
           headers: {
             'Content-Type': 'application/json',

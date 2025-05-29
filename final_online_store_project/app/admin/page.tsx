@@ -602,7 +602,22 @@ export default function AdminPage() {
                     step="0.01"
                     min="0"
                     value={productForm.data.price}
-                    onChange={(e) => setProductForm(prev => ({ ...prev, data: { ...prev.data, price: e.target.value } }))}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Only allow numbers and decimal points
+                      if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                        const numValue = parseFloat(value)
+                        if (value === '' || (!isNaN(numValue) && numValue >= 0)) {
+                          setProductForm(prev => ({ ...prev, data: { ...prev.data, price: value } }))
+                        }
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      // Prevent non-numeric characters except decimal point
+                      if (!/[\d.]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault()
+                      }
+                    }}
                     placeholder="0.00"
                     required
                   />
@@ -614,18 +629,32 @@ export default function AdminPage() {
                     id="product-quantity"
                     type="number"
                     min="0"
+                    max="99999"
                     value={productForm.data.availableQuantity}
                     onChange={(e) => {
-                      const newQuantity = e.target.value
-                      const quantity = parseInt(newQuantity)
-                      setProductForm(prev => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          availableQuantity: newQuantity,
-                          inStock: quantity > 0 ? prev.data.inStock : false
+                      const value = e.target.value
+                      // Only allow positive integers
+                      if (value === '' || /^\d+$/.test(value)) {
+                        const numValue = parseInt(value)
+                        if (value === '' || (!isNaN(numValue) && numValue >= 0)) {
+                          const newQuantity = value
+                          const quantity = parseInt(newQuantity)
+                          setProductForm(prev => ({
+                            ...prev,
+                            data: {
+                              ...prev.data,
+                              availableQuantity: newQuantity,
+                              inStock: quantity > 0 ? prev.data.inStock : false
+                            }
+                          }))
                         }
-                      }))
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      // Prevent non-numeric characters
+                      if (!/\d/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault()
+                      }
                     }}
                     placeholder="0"
                     required

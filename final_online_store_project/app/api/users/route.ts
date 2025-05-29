@@ -1,66 +1,54 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import connectDB from "@/lib/mongoose"
+import { createApiHandler, createErrorResponse, createSuccessResponse } from "@/lib/api-handler"
+import { validateRequiredFields, validateEmail } from "@/lib/validation"
 import User from "@/models/User"
 
-// GET endpoint to fetch all users (admin only)
-export async function GET() {
-  try {
-    await connectDB()
-    const users = await User.find({}).select('-password')
-    return NextResponse.json(users)
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error)
-    return NextResponse.json(
-      { message: "Erro interno do servidor" },
-      { status: 500 }
-    )
-  }
-}
+// GET endpoint to fetch all users
+export const GET = createApiHandler(async () => {
+  const users = await User.find({}).select('-password')
+  return NextResponse.json(users)
+})
 
 // POST endpoint to create a new user
-export async function POST(req: Request) {
-  try {
-    await connectDB()
-    const { name, email, apartment, password, admin = false } = await req.json()
+export const POST = createApiHandler(async ({ req }) => {
+  const data = await req.json()
+  const { name, email, apartment, password, admin = false } = data
 
-    // Verificar se o usuário já existe
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-      return NextResponse.json(
-        { message: "Email já está sendo usado" },
-        { status: 400 }
-      )
-    }
-
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Criar o usuário com carrinho vazio
-    const user = await User.create({
-      name,
-      email,
-      apartment,
-      password: hashedPassword,
-      admin,
-      paymentMethod: null,
-      orders: [],
-      cart: [] // Inicializar carrinho vazio
-    })
-
-    // Remover a senha antes de retornar
-    const userObj = user.toObject()
-    delete userObj.password
-
-    return NextResponse.json(
-      { message: "Usuário criado com sucesso", user: userObj },
-      { status: 201 }
-    )
-  } catch (error) {
-    console.error('Erro ao criar usuário:', error)
-    return NextResponse.json(
-      { message: "Erro interno do servidor" },
-      { status: 500 }
-    )
+  // Validate required fields
+  const fieldsValidation = validateRequiredFields(data, ['name', 'email', 'apartment', 'password'])
+  if (!fieldsValidation.valid) {
+    return fieldsValidation.error!
   }
-}
+
+  // Validate email format
+  const emailValidation = validateEmail(email)
+  if (!emailValidation.valid) {
+    return emailValidation.error!
+  }
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email })
+  if (existingUser) {
+    return createErrorResponse("Email já está sendo usado", 400)
+  }
+
+  // Hash password and create user
+  const hashedPassword = await bcrypt.hash(password, 12)
+  const user = await User.create({
+    name,
+    email,
+    apartment,
+    password: hashedPassword,
+    admin,
+    paymentMethod: null,
+    orders: [],
+    cart: []
+  })
+
+  // Remove password before returning
+  const userObj = user.toObject()
+  delete userObj.password
+
+  return createSuccessResponse({ user: userObj }, "Usuário criado com sucesso", 201)
+})
