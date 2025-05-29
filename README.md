@@ -116,14 +116,76 @@ graph TD
 
 ## 💬 4. Comentários sobre o código
 
-Sem código funcional no momento — apenas HTML/CSS estáticos.
-
+Funcionamento completo. No momento, apenas procurando bugs pontuais que podem existir no código.
 ---
 
-## 🧪 5. Plano de Testes
+## 🧪 5. Testes
 
-Pretendemos usar Postman para testar o backend futuramente.  
-Na fase atual, apenas validamos visualmente os elementos HTML/CSS.
+### 5.1 Testes de Cadastro e Login
+
+Foram realizados **testes extensivos** do sistema de cadastro e autenticação:
+
+- **Cadastro de usuários**: Testamos múltiplos cadastros preenchendo todos os campos obrigatórios (nome, email, apartamento, senha)
+- **Validações de senha**: Confirmamos que o sistema respeita as restrições de segurança:
+  - Mínimo de 8 caracteres
+  - Pelo menos uma letra
+  - Pelo menos um número  
+  - Pelo menos um símbolo especial
+- **Validação de email**: Sistema impede cadastros com emails duplicados
+- **Login funcional**: Todos os usuários cadastrados conseguem fazer login com sucesso
+- **Redirecionamento**: Usuários autenticados são redirecionados corretamente para suas páginas de perfil
+
+### 5.2 Testes do Sistema de Carrinho
+
+O sistema de carrinho foi **rigorosamente testado** com foco na segurança e usabilidade:
+
+- **Restrição de acesso**: Usuários não logados são **automaticamente redirecionados** para a página de login ao tentar adicionar produtos
+- **Apenas usuários autenticados** podem adicionar produtos ao carrinho
+- **Testes de quantidade**: Realizamos múltiplos testes:
+  - Adição de várias quantidades do mesmo produto
+  - Adição de produtos diferentes simultaneamente
+  - Aumento e diminuição de quantidades diretamente no carrinho
+  - Remoção completa de produtos do carrinho
+- **Validação de estoque**: Sistema impede adicionar quantidades superiores ao disponível
+- **Checkout seguro**: Não é possível finalizar compras sem um cartão cadastrado no perfil
+
+### 5.3 Testes da Página Administrativa
+
+A interface administrativa foi **completamente validada**:
+
+- **Gerenciamento de usuários**: 
+  - Alteração de dados de usuários existentes
+  - Exclusão de usuários do sistema
+  - Promoção/rebaixamento de privilégios administrativos
+- **Gerenciamento de produtos**:
+  - Edição de informações (nome, descrição, preço)
+  - Upload e alteração de imagens
+  - Modificação de quantidades em estoque
+  - Alteração de status de disponibilidade
+  - Criação de novos produtos
+  - Exclusão de produtos existentes
+
+### 5.4 Testes da Funcionalidade Específica do Grupo
+
+O **sistema de código de retirada** foi testado com sucesso:
+
+- **Geração automática**: A cada compra finalizada, um código único é gerado
+- **Apresentação clara**: O código é exibido ao usuário de forma destacada
+- **Persistência**: Os códigos ficam salvos no histórico de pedidos do usuário
+- **QR Code**: Sistema gera QR codes para facilitar a retirada presencial
+
+### 5.5 Testes do Perfil de Usuário
+
+A página de perfil foi **amplamente testada**:
+
+- **Cadastro de cartões**: Sistema permite adicionar múltiplos cartões de pagamento
+- **Validações de cartão**: 
+  - Verificação de número do cartão (13-19 dígitos)
+  - Validação de data de validade (formato MM/AA)
+  - Verificação de CVC (mínimo 3 dígitos)
+- **Histórico de pedidos**: Todos os pedidos realizados aparecem corretamente
+- **Gerenciamento de cartões**: Usuários podem excluir cartões salvos
+- **Confirmação de retirada**: Sistema permite confirmar quando pedidos foram retirados
 
 ---
 
