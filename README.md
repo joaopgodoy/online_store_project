@@ -189,36 +189,162 @@ A página de perfil foi **amplamente testada**:
 
 ---
 
-## ✅ 6. Resultados dos Testes
+## 🛠 6. Procedimentos de Build
 
-Sem testes automatizados até o momento.
+### Pré-requisitos
 
----
+Antes de executar o projeto, certifique-se de ter instalado:
 
-## 🛠 7. Procedimentos de Build
+- **Node.js** (versão 18 ou superior)
+- **npm** ou **yarn**
+- **MongoDB** (local ou MongoDB Atlas)
 
-Para visualizar o projeto localmente:
+### Configuração do Ambiente
 
-1. Baixe o projeto.
-2. Abra o arquivo `index.html` no navegador.
-3. Use os links de navegação nas páginas para acessar as abas (somente Login, Carrinho e Página Inicial possuem abas finalizados).
+1. **Clone o repositório**:
+   ```bash
+   git clone <url-do-repositorio>
+   cd online_store_project/final_online_store_project
+   ```
 
----
+2. **Instale as dependências**:
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
 
-## ⚠️ 8. Problemas
+3. **Configure as variáveis de ambiente**:
+   
+   Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/online_store
+   # ou para MongoDB Atlas:
+   # MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/online_store
+   
+   JWT_SECRET=seu_jwt_secret_muito_seguro_aqui
+   NEXTAUTH_SECRET=seu_nextauth_secret_aqui
+   NEXTAUTH_URL=http://localhost:3000
+   ```
 
-Nenhum problema encontrado até agora.
+### Executando o Projeto
 
----
+#### Modo de Desenvolvimento
 
-## 💡 9. Comentários
+```bash
+npm run dev
+# ou
+yarn dev
+```
 
-Estamos abertos a sugestões para melhorar o layout, acessibilidade e usabilidade das interfaces.
+O servidor estará disponível em: `http://localhost:3000`
 
----
+#### Modo de Produção
 
-## 🔗 HTMLs Feitos
+1. **Build do projeto**:
+   ```bash
+   npm run build
+   # ou
+   yarn build
+   ```
 
-- [`index.html`](index.html): Tela inicial da loja, com principais produtos
-- [`login.html`](login.html): Tela de login do usuário
-- [`cart.html`](cart.html): Tela de carrinho para ver produtos escolhidos e finalizar a compra
+2. **Iniciar servidor de produção**:
+   ```bash
+   npm start
+   # ou
+   yarn start
+   ```
+
+### Estrutura do Projeto
+
+```
+final_online_store_project/
+├── app/                    # Páginas e rotas da aplicação
+│   ├── admin/             # Painel administrativo
+│   ├── api/               # API routes (backend)
+│   ├── carrinho/          # Página do carrinho
+│   ├── login/             # Página de login/cadastro
+│   ├── perfil/            # Página de perfil do usuário
+│   └── produtos/          # Páginas de produtos
+├── components/            # Componentes reutilizáveis
+├── contexts/              # Contextos React (Auth, Cart)
+├── hooks/                 # Hooks customizados
+├── lib/                   # Utilitários e configurações
+├── models/                # Modelos do MongoDB
+├── public/                # Arquivos estáticos
+└── types/                 # Definições de tipos TypeScript
+```
+
+### Scripts Disponíveis
+
+- `npm run dev` - Executa em modo desenvolvimento
+- `npm run build` - Cria build de produção
+- `npm start` - Inicia servidor de produção
+- `npm run lint` - Executa linting do código
+- `npm run type-check` - Verifica tipos TypeScript
+
+### Primeiros Passos Após Instalação
+
+1. **Acesse a aplicação** em `http://localhost:3000`
+
+2. **Crie uma conta de administrador**:
+   - Vá para `/login`
+   - Cadastre um usuário
+   - No banco de dados, altere o campo `admin` para `true`
+
+3. **Adicione produtos**:
+   - Faça login como admin
+   - Acesse o painel administrativo
+   - Cadastre produtos com imagens, preços e estoque
+
+4. **Teste o sistema**:
+   - Crie contas de usuários normais
+   - Adicione produtos ao carrinho
+   - Cadastre cartões de pagamento
+   - Finalize compras
+
+### Tecnologias Utilizadas
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Node.js
+- **Banco de Dados**: MongoDB com Mongoose
+- **Autenticação**: JWT com bcryptjs
+- **Upload de Imagens**: Sistema de upload local
+- **UI Components**: Radix UI, Lucide Icons
+
+### Deploy
+
+Para deploy em produção, recomendamos:
+
+1. **Vercel** (recomendado para Next.js):
+   ```bash
+   npm i -g vercel
+   vercel
+   ```
+
+2. **Docker** (opcional):
+   ```dockerfile
+   # Exemplo de Dockerfile
+   FROM node:18-alpine
+   WORKDIR /app
+   COPY package*.json ./
+   RUN npm ci --only=production
+   COPY . .
+   RUN npm run build
+   EXPOSE 3000
+   CMD ["npm", "start"]
+   ```
+
+### Troubleshooting
+
+**Erro de conexão com MongoDB**:
+- Verifique se o MongoDB está rodando
+- Confirme a string de conexão no `.env.local`
+
+**Erro de dependências**:
+- Delete `node_modules` e `package-lock.json`
+- Execute `npm install` novamente
+
+**Erro de build**:
+- Verifique se todas as variáveis de ambiente estão configuradas
+- Execute `npm run type-check` para verificar erros de TypeScript
