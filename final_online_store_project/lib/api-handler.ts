@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import mongoose from 'mongoose'
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from './auth-middleware'
-import { validateObjectId, validateRequiredFields } from './validation'
+import { validateObjectId } from './validation'
 import connectDB from './mongoose'
 
 export interface ApiHandlerOptions {
