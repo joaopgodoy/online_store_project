@@ -16,8 +16,6 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
-  refreshUser: () => Promise<void>
-  validateUser: () => Promise<boolean>
   isAuthenticated: boolean
 }
 
@@ -83,65 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     delete axios.defaults.headers.common['Authorization']
   }
 
-  const refreshUser = async () => {
-    if (!token) return
-
-    try {
-      console.log('Refreshing user data...')
-      const response = await api.get("/api/users/me")
-
-      if (response.status === 200) {
-        const userData = response.data
-        console.log('Updated user data received:', userData)
-        setUser(userData)
-        localStorage.setItem("user", JSON.stringify(userData))
-        console.log('User state and localStorage updated')
-      }
-    } catch (error: any) {
-      console.error('Error refreshing user data:', error)
-      
-      // Se o erro for 401 (Unauthorized) ou 404 (Not Found), 
-      // significa que o token é inválido ou o usuário não existe mais
-      if (error.response?.status === 401 || error.response?.status === 404) {
-        console.log('User no longer exists or token is invalid during refresh, logging out...')
-        logout()
-        throw error // Re-throw para que o componente saiba que houve erro de autenticação
-      }
-    }
-  }
-
-  const validateUser = async (): Promise<boolean> => {
-    if (!token) {
-      console.log('No token found, user not authenticated')
-      return false
-    }
-
-    try {
-      console.log('Validating user existence...')
-      const response = await api.get("/api/users/me")
-
-      if (response.status === 200) {
-        const userData = response.data
-        console.log('User validated and data updated:', userData)
-        setUser(userData)
-        localStorage.setItem("user", JSON.stringify(userData))
-        return true
-      }
-    } catch (error: any) {
-      console.error('Error validating user:', error)
-      
-      // Se o erro for 401 (Unauthorized) ou 404 (Not Found), 
-      // significa que o token é inválido ou o usuário não existe mais
-      if (error.response?.status === 401 || error.response?.status === 404) {
-        console.log('User no longer exists or token is invalid, logging out...')
-        logout()
-        return false
-      }
-    }
-    
-    return false
-  }
-
   return (
     <AuthContext.Provider
       value={{
@@ -149,8 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         login,
         logout,
-        refreshUser,
-        validateUser,
         isAuthenticated: !!user,
       }}
     >

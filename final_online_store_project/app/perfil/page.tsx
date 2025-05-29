@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus, Settings, RefreshCw } from "lucide-react"
+import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import axios from "axios"
 import {
@@ -67,7 +67,7 @@ interface PaymentMethod {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, logout, isAuthenticated, validateUser, refreshUser } = useAuth()
+  const { user, logout, isAuthenticated } = useAuth()
   const { toast } = useToast()
   
   const [orders, setOrders] = useState<Order[]>([])
@@ -97,37 +97,6 @@ export default function ProfilePage() {
       router.push("/login")
     }
   }, [isAuthenticated, router])
-
-  // Validar se o usuário ainda existe no banco de dados sempre que a página for acessada
-  useEffect(() => {
-    const checkUserValidation = async () => {
-      if (isAuthenticated && user) {
-        console.log('Validating and refreshing user data on profile page load...')
-        
-        // Primeiro validar se o usuário ainda existe
-        const isValid = await validateUser()
-        if (!isValid) {
-          toast({
-            title: "Sessão expirada",
-            description: "Sua sessão expirou ou sua conta não foi encontrada. Por favor, faça login novamente.",
-            variant: "destructive"
-          })
-          router.push("/login")
-          return
-        }
-
-        // Se válido, atualizar os dados do usuário
-        try {
-          await refreshUser()
-          console.log('User data refreshed successfully on profile page')
-        } catch (error) {
-          console.error('Error refreshing user data on profile page:', error)
-        }
-      }
-    }
-
-    checkUserValidation()
-  }, [isAuthenticated, user, validateUser, refreshUser, router, toast])
 
   // Buscar pedidos do usuário
   useEffect(() => {
@@ -477,20 +446,10 @@ export default function ProfilePage() {
           <h1 className="text-2xl md:text-3xl font-bold">Meu Perfil</h1>
           <p className="text-muted-foreground">Gerencie suas informações e pedidos</p>
         </div>
-        <div className="flex gap-2 self-start sm:self-auto">
-          {user.admin && (
-            <Button variant="outline" asChild>
-              <Link href="/admin">
-                <Settings className="w-4 h-4 mr-2" />
-                Painel Admin
-              </Link>
-            </Button>
-          )}
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
-        </div>
+        <Button variant="outline" onClick={handleLogout} className="self-start sm:self-auto">
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

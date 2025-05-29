@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X } from "lucide-react"
 import Image from "next/image"
-import { useAuth } from "@/components/auth-provider"
 
 interface Product {
   _id: string
@@ -63,7 +62,6 @@ export default function AdminPage() {
   })
 
   const { toast } = useToast()
-  const { user: currentUser, refreshUser } = useAuth()
 
   useEffect(() => {
     fetchData()
@@ -270,16 +268,6 @@ export default function AdminPage() {
         title: "Sucesso",
         description: editing ? "Usuário atualizado com sucesso" : "Usuário criado com sucesso"
       })
-
-      // If the current user is editing their own profile, refresh the user data
-      if (editing && currentUser && editing._id === currentUser._id) {
-        console.log('Refreshing user data for current user:', currentUser._id)
-        console.log('Editing user ID:', editing._id)
-        console.log('Current user ID:', currentUser._id)
-        console.log('IDs match:', editing._id === currentUser._id)
-        await refreshUser()
-        console.log('User data refresh completed')
-      }
 
       resetUserForm()
       fetchUsers()
