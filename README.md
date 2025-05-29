@@ -356,26 +356,27 @@ final_online_store_project/
 
 1. **Acesse a aplicação** em `http://localhost:3000`
 
-2. **Use a conta de administrador para testes**:
+2. **Use a conta de administrador para acessar a página administrativa**:
    - Email: `admin@email.com`
    - Senha: `admin123@`
    - Esta conta já possui privilégios administrativos configurados
 
-3. **Alternativamente, crie uma nova conta de administrador**:
-   - Vá para `/login`
-   - Cadastre um usuário
-   - No banco de dados, altere o campo `admin` para `true`
-
-4. **Adicione produtos**:
+3. **Adicione produtos**:
    - Faça login como admin
    - Acesse o painel administrativo
    - Cadastre produtos com imagens, preços e estoque
 
-5. **Teste o sistema**:
+4. **Teste o sistema**:
    - Crie contas de usuários normais
-   - Adicione produtos ao carrinho
-   - Cadastre cartões de pagamento
-   - Finalize compras
+   - Adicione e apague produtos
+   - Adicione e apague usuários
+
+5. **Crie uma conta de cliente**
+   - Adicione e retire produtos do carrinho
+   - Adicione e remova cartões a sua conta
+   - Finalize as suas compras
+   - Cheque os pedidos feitos
+   - Retire seu pedido (simulado através de uma confirmação no seu perfil)
 
 ### Tecnologias Utilizadas
 
