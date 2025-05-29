@@ -5,7 +5,17 @@ import { Mail, Phone } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 
 export default function Footer() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
+  
+  // Função para verificar se o usuário é admin
+  const isAdmin = (user: any) => {
+    return user && (
+      (user.name === "admin" && 
+        user.email === "admin@email.com" && 
+        user.apartment === "00") || 
+      user.admin === true
+    )
+  }
 
   return (
     <footer className="bg-muted py-8 border-t">
@@ -32,10 +42,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  href={isAuthenticated ? "/perfil" : "/login"} 
+                  href={isAuthenticated ? (isAdmin(user) ? "/admin" : "/perfil") : "/login"} 
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {isAuthenticated ? "Meu Perfil" : "Login"}
+                  {isAuthenticated ? (isAdmin(user) ? "Administração" : "Meu Perfil") : "Login"}
                 </Link>
               </li>
               {!isAuthenticated && (
