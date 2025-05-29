@@ -13,15 +13,15 @@
 
 ### Usuários:
 - **Clientes**: compram produtos
-- **Administradores**: gerenciam produtos, clientes e outros admins
+- **Administradores**: gerenciam produtos e clientes
 
 ### Requisitos principais:
 - Login (cliente/admin)
 - Cadastro de produtos (nome, id, foto, descrição, preço, estoque, vendidos)
-- Cadastro de clientes e admins (nome, id, email, telefone, endereço)
-- Carrinho de compras (cliente escolhe produto, quantidade, compra com cartão (qualquer número aceito))
+- Cadastro de clientes e admins (nome, email, senha, apartamento)
+- Carrinho de compras (cliente escolhe produto, quantidade, compra com cartão)
 - CRUD de produtos (admin)
-- Funcionalidade específica: Código de segurança e QR Code gerados para a retirada dos produtos presencialmente
+- Funcionalidade específica: Código de segurança e QR Code para a retirada dos produtos presencialmente
 
 ---
 
@@ -63,7 +63,7 @@ O projeto **Near Market** é uma aplicação web completa desenvolvida com **Nex
 
 #### 🎫 Funcionalidade Específica do Grupo
 - **Geração automática de código** único para cada compra
-- **QR Code dinâmico** para facilitar retirada presencial
+- **QR Code** para facilitar retirada presencial
 - **Persistência dos códigos** no histórico do usuário
 - **Interface clara** para apresentação dos códigos
 
