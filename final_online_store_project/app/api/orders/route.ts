@@ -3,6 +3,11 @@ import Order from "@/models/Order"
 import User from "@/models/User"
 
 export const POST = createApiHandler(async ({ req, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode criar pedidos', 403)
+  }
+
   const { items, total, paymentMethod } = await req.json()
 
   // Validar dados do pedido

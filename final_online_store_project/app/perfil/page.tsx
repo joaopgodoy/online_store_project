@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus } from "lucide-react"
+import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus, ShieldCheck } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import axios from "axios"
 import {
@@ -69,6 +69,16 @@ export default function ProfilePage() {
   const router = useRouter()
   const { user, logout, isAuthenticated } = useAuth()
   const { toast } = useToast()
+  
+  // Função para verificar se o usuário é admin
+  const isAdmin = (user: any) => {
+    return user && (
+      (user.name === "admin" && 
+       user.email === "admin@email.com" && 
+       user.apartment === "00") || 
+      user.admin === true
+    )
+  }
   
   const [orders, setOrders] = useState<Order[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
@@ -489,6 +499,18 @@ export default function ProfilePage() {
                   {user.admin ? "Administrador" : "Cliente"}
                 </Badge>
               </div>
+              
+              {/* Botão de acesso à área administrativa para admins */}
+              {isAdmin(user) && (
+                <Button 
+                  variant="default" 
+                  className="w-full mt-2" 
+                  onClick={() => router.push('/admin')}
+                >
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Acessar Painel Administrativo
+                </Button>
+              )}
             </CardContent>
           </Card>
 

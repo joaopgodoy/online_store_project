@@ -2,6 +2,11 @@ import { createApiHandler, createErrorResponse, createSuccessResponse } from '@/
 import PaymentMethod from '@/models/PaymentMethod'
 
 export const PATCH = createApiHandler(async ({ req, params, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode modificar métodos de pagamento', 403)
+  }
+
   const { isDefault } = await req.json()
 
   if (isDefault) {
@@ -27,6 +32,11 @@ export const PATCH = createApiHandler(async ({ req, params, userId }) => {
 }, { requireAuth: true, validateId: true })
 
 export const DELETE = createApiHandler(async ({ params, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode excluir métodos de pagamento', 403)
+  }
+
   const resource = await PaymentMethod.findOneAndDelete({
     _id: params!.id,
     user: userId

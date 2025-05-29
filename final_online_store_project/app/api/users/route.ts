@@ -13,7 +13,7 @@ export const GET = createApiHandler(async () => {
 // POST endpoint to create a new user
 export const POST = createApiHandler(async ({ req }) => {
   const data = await req.json()
-  const { name, email, apartment, password, admin = false } = data
+  const { name, email, apartment, password } = data
 
   // Validate required fields
   const fieldsValidation = validateRequiredFields(data, ['name', 'email', 'apartment', 'password'])
@@ -33,14 +33,14 @@ export const POST = createApiHandler(async ({ req }) => {
     return createErrorResponse("Email já está sendo usado", 400)
   }
 
-  // Hash password and create user
+  // Hash password and create user - admin is always false for regular users
   const hashedPassword = await bcrypt.hash(password, 12)
   const user = await User.create({
     name,
     email,
     apartment,
     password: hashedPassword,
-    admin,
+    admin: false, // Always false for regular users
     paymentMethod: null,
     orders: [],
     cart: []

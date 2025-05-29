@@ -4,6 +4,11 @@ import User from '@/models/User'
 import Product from '@/models/Product'
 
 export const GET = createApiHandler(async ({ userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createSuccessResponse({ cart: [] })
+  }
+
   const user = await User.findById(userId).populate('cart.product')
   if (!user) {
     return createErrorResponse('Usuário não encontrado', 404)
@@ -13,6 +18,11 @@ export const GET = createApiHandler(async ({ userId }) => {
 }, { requireAuth: true })
 
 export const POST = createApiHandler(async ({ req, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode adicionar itens ao carrinho', 403)
+  }
+
   const { productId, quantity = 1 } = await req.json()
   
   const user = await User.findById(userId)
@@ -58,6 +68,11 @@ export const POST = createApiHandler(async ({ req, userId }) => {
 }, { requireAuth: true })
 
 export const PUT = createApiHandler(async ({ req, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode modificar carrinho', 403)
+  }
+
   const { productId, quantity } = await req.json()
   
   const user = await User.findById(userId)
@@ -105,6 +120,11 @@ export const PUT = createApiHandler(async ({ req, userId }) => {
 }, { requireAuth: true })
 
 export const DELETE = createApiHandler(async ({ userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode modificar carrinho', 403)
+  }
+
   const user = await User.findById(userId)
   if (!user) {
     return createErrorResponse('Usuário não encontrado', 404)

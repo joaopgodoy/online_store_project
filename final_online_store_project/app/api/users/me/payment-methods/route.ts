@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 import PaymentMethod from "@/models/PaymentMethod"
 
 export const GET = createApiHandler(async ({ userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return NextResponse.json([])
+  }
+
   const paymentMethods = await PaymentMethod.find({ user: userId })
     .sort({ createdAt: -1 })
     .lean()
@@ -12,6 +17,11 @@ export const GET = createApiHandler(async ({ userId }) => {
 }, { requireAuth: true })
 
 export const POST = createApiHandler(async ({ req, userId }) => {
+  // Handle special admin user
+  if (userId === 'admin_hardcoded') {
+    return createErrorResponse('Admin não pode adicionar métodos de pagamento', 403)
+  }
+
   let requestData
   try {
     requestData = await req.json()

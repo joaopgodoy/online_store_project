@@ -2,6 +2,11 @@ import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
 
 export function validateObjectId(id: string, entityName: string = 'ID'): { valid: boolean; error?: NextResponse } {
+  // Allow special admin ID
+  if (id === 'admin_hardcoded') {
+    return { valid: true }
+  }
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return {
       valid: false,

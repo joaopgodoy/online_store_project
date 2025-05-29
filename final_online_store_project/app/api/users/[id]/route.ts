@@ -6,7 +6,7 @@ import User from '@/models/User'
 // PUT endpoint to update a user
 export const PUT = createApiHandler(async ({ req, params }) => {
   const data = await req.json()
-  const { name, email, apartment, admin, password } = data
+  const { name, email, apartment, password } = data
   
   // Validate required fields (password is optional for updates)
   const fieldsValidation = validateRequiredFields(data, ['name', 'email', 'apartment'])
@@ -29,8 +29,8 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     return createErrorResponse('Já existe um usuário com esse email', 400)
   }
   
-  // Prepare update data
-  const updateData: any = { name, email, apartment, admin }
+  // Prepare update data - admin is always false for regular users
+  const updateData: any = { name, email, apartment, admin: false }
 
   // Hash password if provided
   if (password && password.trim() !== '') {

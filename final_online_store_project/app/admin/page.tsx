@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/components/auth-provider"
 import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X } from "lucide-react"
 import Image from "next/image"
 
@@ -40,6 +42,8 @@ interface User {
 const CATEGORIES = ["Alimentos e Bebidas", "Higiene e Cuidados Pessoais", "Limpeza", "Farmácia e Bem-estar"]
 
 export default function AdminPage() {
+  const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState({ products: true, users: true })
@@ -56,16 +60,59 @@ export default function AdminPage() {
   
   const [userForm, setUserForm] = useState({
     open: false,
-    data: { name: "", email: "", apartment: "", admin: false, password: "" },
+    data: { name: "", email: "", apartment: "", password: "" },
     editing: null as User | null,
     submitting: false
   })
 
   const { toast } = useToast()
 
+  // Check if user is admin
+  const isHardcodedAdmin = (user: any) => {
+    if (!user) return false;
+    
+    // Verifica tanto se é o admin hardcoded quanto se tem o campo admin=true
+    return (
+      (user.name === "admin" && 
+       user.email === "admin@email.com" && 
+       user.apartment === "00") || 
+      user.admin === true
+    );
+  }
+
+  // Authentication and authorization check
   useEffect(() => {
+    // Wait for authentication state to be initialized
+    if (isAuthenticated === undefined) return
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa fazer login para acessar esta página.",
+        variant: "destructive",
+      })
+      router.push('/login')
+      return
+    }
+
+    // Wait for user data to be loaded
+    if (!user) return
+
+    if (!isHardcodedAdmin(user)) {
+      toast({
+        title: "Acesso negado",
+        description: "Você não tem permissão para acessar esta página.",
+        variant: "destructive",
+      })
+      router.push('/')
+      return
+    }
+
+    // Only fetch data if user is authenticated and is admin
     fetchData()
-  }, [])
+  }, [isAuthenticated, user, router])
+
+  // Remove the duplicate useEffect that was causing double API calls
 
   const fetchData = async () => {
     await Promise.all([fetchProducts(), fetchUsers()])
@@ -73,7 +120,15 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products')
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('/api/products', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       if (!response.ok) throw new Error('Erro ao carregar produtos')
       
       const data = await response.json()
@@ -91,6 +146,7 @@ export default function AdminPage() {
       
       setProducts(transformedData)
     } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
       toast({ title: "Erro", description: "Não foi possível carregar os produtos", variant: "destructive" })
     } finally {
       setLoading(prev => ({ ...prev, products: false }))
@@ -122,7 +178,7 @@ export default function AdminPage() {
   const resetUserForm = () => {
     setUserForm({
       open: false,
-      data: { name: "", email: "", apartment: "", admin: false, password: "" },
+      data: { name: "", email: "", apartment: "", password: "" },
       editing: null,
       submitting: false
     })
@@ -159,7 +215,6 @@ export default function AdminPage() {
           name: user.name,
           email: user.email,
           apartment: user.apartment,
-          admin: user.admin,
           password: ""
         }
       })
@@ -246,7 +301,7 @@ export default function AdminPage() {
         name: data.name,
         email: data.email,
         apartment: data.apartment,
-        admin: data.admin,
+        admin: false, // Always false for regular users
         ...(data.password && { password: data.password })
       }
 
@@ -284,6 +339,19 @@ export default function AdminPage() {
 
   const handleDelete = async (type: 'product' | 'user', id: string) => {
     try {
+      // Se for um usuário, verifica se é admin
+      if (type === 'user') {
+        const userToDelete = users.find(user => user._id === id);
+        if (userToDelete?.admin) {
+          toast({ 
+            title: "Operação não permitida", 
+            description: "Não é possível excluir um administrador",
+            variant: "destructive" 
+          });
+          return;
+        }
+      }
+
       const response = await fetch(`/api/${type === 'product' ? 'products' : 'users'}/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error(`Erro ao excluir ${type === 'product' ? 'produto' : 'usuário'}`)
 
@@ -360,6 +428,16 @@ export default function AdminPage() {
       ...prev,
       data: { ...prev.data, image: "" }
     }))
+  }
+
+  // Show loading state while checking authentication
+  if (isAuthenticated === undefined || !user || !isHardcodedAdmin(user)) {
+    return (
+      <div className="container mx-auto py-16 px-4 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p>Verificando acesso...</p>
+      </div>
+    )
   }
 
   return (
@@ -556,38 +634,45 @@ export default function AdminPage() {
                         <TableCell>{new Date(user.createdAt).toLocaleDateString('pt-BR')}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => openUserForm(user)}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
+                            {/* Impedir a edição de administradores */}
+                            {!user.admin ? (
+                              <>
+                                <Button variant="outline" size="sm" onClick={() => openUserForm(user)}>
+                                  <Pencil className="w-4 h-4" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir o usuário "{user.name}"?
-                                    Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => handleDelete('user', user._id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja excluir o usuário "{user.name}"?
+                                        Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => handleDelete('user', user._id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
+                            ) : (
+                              <Badge variant="outline">Protegido</Badge>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -869,16 +954,6 @@ export default function AdminPage() {
                   placeholder="Digite a senha"
                   required={!userForm.editing}
                 />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="user-admin"
-                  checked={userForm.data.admin}
-                  onChange={(e) => setUserForm(prev => ({ ...prev, data: { ...prev.data, admin: e.target.checked } }))}
-                />
-                <Label htmlFor="user-admin">Usuário administrador</Label>
               </div>
             </div>
 
