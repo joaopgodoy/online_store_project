@@ -23,7 +23,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const { toast } = useToast()
   const { addItem, items } = useCart()
   const { products, loading, error, updateProduct } = useProducts()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [quantidade, setQuantidade] = useState(1)
   const [productId, setProductId] = useState<string | null>(null)
 
@@ -103,6 +103,23 @@ export default function ProductPage({ params }: ProductPageProps) {
         variant: "destructive"
       })
       router.push('/login')
+      return
+    }
+
+    // Verificar se o usuário é admin
+    const isAdmin = user && (
+      (user.name === "admin" && 
+       user.email === "admin@email.com" && 
+       user.apartment === "00") || 
+      user.admin === true
+    )
+
+    if (isAdmin) {
+      toast({
+        title: "Acesso negado",
+        description: "Administradores não podem adicionar itens ao carrinho.",
+        variant: "destructive"
+      })
       return
     }
 

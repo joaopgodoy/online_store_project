@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { ShoppingCart, User, Menu, X } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from './auth-provider'
@@ -18,10 +18,31 @@ const categorias = [
 
 export default function Header() {
     const pathname = usePathname()
+    const router = useRouter()
     const { items } = useCart()
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated, user } = useAuth()
     const [isMobile, setIsMobile] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+    // Função para verificar se o usuário é admin
+    const isAdmin = (user: any) => {
+        return user && (
+            (user.name === "admin" && 
+             user.email === "admin@email.com" && 
+             user.apartment === "00") || 
+            user.admin === true
+        )
+    }
+
+    // Função para lidar com o clique no botão de perfil
+    const handleProfileClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        if (isAdmin(user)) {
+            router.push('/admin')
+        } else {
+            router.push('/perfil')
+        }
+    }
 
     // Calcular quantidade total de itens no carrinho apenas se autenticado
     const cartItemCount = isAuthenticated ? items.reduce(
@@ -109,24 +130,27 @@ export default function Header() {
 
                     {/* Ícones de Usuário e Carrinho */}
                     <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                        <Link
-                            href="/perfil"
+                        <button
+                            onClick={handleProfileClick}
                             className="p-2 rounded-full hover:bg-gray-100"
+                            title={isAdmin(user) ? "Ir para Painel Administrativo" : "Ir para Perfil"}
                         >
                             <User className="w-5 h-5 text-gray-700" />
-                        </Link>
+                        </button>
 
-                        <Link
-                            href="/carrinho"
-                            className="p-2 relative rounded-full hover:bg-gray-100"
-                        >
-                            <ShoppingCart className="w-5 h-5 text-gray-700" />
-                            {cartItemCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
-                                    {cartItemCount}
-                                </span>
-                            )}
-                        </Link>
+                        {!isAdmin(user) && (
+                            <Link
+                                href="/carrinho"
+                                className="p-2 relative rounded-full hover:bg-gray-100"
+                            >
+                                <ShoppingCart className="w-5 h-5 text-gray-700" />
+                                {cartItemCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                                        {cartItemCount}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

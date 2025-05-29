@@ -65,7 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return true
     } catch (error) {
-      console.error("Erro no login:", error)
+      // Don't log expected authentication errors (401)
+      if (axios.isAxiosError(error) && error.response?.status !== 401) {
+        console.error("Erro no login:", error)
+      }
       return false
     }
   }

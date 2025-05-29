@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
-import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X } from "lucide-react"
+import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X, LogOut } from "lucide-react"
 import Image from "next/image"
 
 interface Product {
@@ -43,7 +43,7 @@ const CATEGORIES = ["Alimentos e Bebidas", "Higiene e Cuidados Pessoais", "Limpe
 
 export default function AdminPage() {
   const router = useRouter()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState({ products: true, users: true })
@@ -429,6 +429,16 @@ export default function AdminPage() {
       data: { ...prev.data, image: "" }
     }))
   }
+  
+  // Função para realizar logout
+  const handleLogout = () => {
+    logout()
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso."
+    })
+    router.push("/")
+  }
 
   // Show loading state while checking authentication
   if (isAuthenticated === undefined || !user || !isHardcodedAdmin(user)) {
@@ -442,9 +452,15 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
-        <p className="text-muted-foreground">Gerencie produtos e usuários da loja</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+          <p className="text-muted-foreground">Gerencie produtos e usuários da loja</p>
+        </div>
+        <Button variant="outline" onClick={handleLogout} className="self-start sm:self-auto">
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
 
       <Tabs defaultValue="products" className="w-full">
