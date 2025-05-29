@@ -78,7 +78,7 @@ export default function Home() {
               href="/categorias/higiene-cuidados"
               className="bg-background p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
-              <h3 className="text-xl font-semibold mb-2">Higiene e Cuidados</h3>
+              <h3 className="text-xl font-semibold mb-2">Higiene e Cuidados Pessoais</h3>
               <p className="text-muted-foreground">Produtos para cuidados diários</p>
             </Link>
             <Link

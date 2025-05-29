@@ -37,6 +37,12 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     return createErrorResponse('Todos os campos obrigatórios devem ser preenchidos', 400)
   }
   
+  // Validar preço mínimo
+  const numPrice = Number(price)
+  if (isNaN(numPrice) || numPrice < 0.01) {
+    return createErrorResponse('O preço deve ser de pelo menos R$ 0,01', 400)
+  }
+  
   // Verificar duplicatas
   const existingProduct = await Product.findOne({ name, _id: { $ne: params!.id } })
   if (existingProduct) {

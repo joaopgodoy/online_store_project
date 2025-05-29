@@ -33,6 +33,12 @@ export const POST = createApiHandler(async ({ req }) => {
     return fieldsValidation.error!
   }
 
+  // Validate minimum price
+  const numPrice = Number(price)
+  if (isNaN(numPrice) || numPrice < 0.01) {
+    return createErrorResponse('O preço deve ser de pelo menos R$ 0,01', 400)
+  }
+
   // Check if product with same name already exists
   const existingProduct = await Product.findOne({ name })
   if (existingProduct) {

@@ -22,7 +22,7 @@ const ProductSchema = new Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Alimentos e Bebidas', 'Higiene e Cuidados', 'Limpeza', 'Farmácia e Bem-estar'] // Adapte as categorias conforme necessário
+    enum: ['Alimentos e Bebidas', 'Higiene e Cuidados Pessoais', 'Limpeza', 'Farmácia e Bem-estar'] // Adapte as categorias conforme necessário
   },
   inStock: {
     type: Boolean,

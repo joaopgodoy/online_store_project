@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -36,7 +37,7 @@ interface User {
   createdAt: string
 }
 
-const CATEGORIES = ["Alimentos e Bebidas", "Higiene e Cuidados", "Limpeza", "Farmácia e Bem-estar"]
+const CATEGORIES = ["Alimentos e Bebidas", "Higiene e Cuidados Pessoais", "Limpeza", "Farmácia e Bem-estar"]
 
 export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -179,8 +180,8 @@ export default function AdminPage() {
     const price = parseFloat(data.price)
     const quantity = parseInt(data.availableQuantity)
 
-    if (isNaN(price) || price < 0 || isNaN(quantity) || quantity < 0) {
-      toast({ title: "Erro", description: "Preço e quantidade devem ser números válidos", variant: "destructive" })
+    if (isNaN(price) || price < 0.01 || isNaN(quantity) || quantity < 0) {
+      toast({ title: "Erro", description: "Preço deve ser de pelo menos R$ 0,01 e quantidade deve ser um número válido", variant: "destructive" })
       return
     }
 
@@ -282,8 +283,6 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (type: 'product' | 'user', id: string) => {
-    if (!confirm(`Tem certeza que deseja excluir este ${type === 'product' ? 'produto' : 'usuário'}?`)) return
-
     try {
       const response = await fetch(`/api/${type === 'product' ? 'products' : 'users'}/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error(`Erro ao excluir ${type === 'product' ? 'produto' : 'usuário'}`)
@@ -457,14 +456,35 @@ export default function AdminPage() {
                             <Button variant="outline" size="sm" onClick={() => openProductForm(product)}>
                               <Pencil className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete('product', product._id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir produto</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o produto "{product.name}"?
+                                    Esta ação não pode ser desfeita e o produto será removido permanentemente do sistema.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete('product', product._id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -539,14 +559,35 @@ export default function AdminPage() {
                             <Button variant="outline" size="sm" onClick={() => openUserForm(user)}>
                               <Pencil className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete('user', user._id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o usuário "{user.name}"?
+                                    Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete('user', user._id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -600,14 +641,14 @@ export default function AdminPage() {
                     id="product-price"
                     type="number"
                     step="0.01"
-                    min="0"
+                    min="0.01"
                     value={productForm.data.price}
                     onChange={(e) => {
                       const value = e.target.value
                       // Only allow numbers and decimal points
                       if (value === '' || /^\d*\.?\d*$/.test(value)) {
                         const numValue = parseFloat(value)
-                        if (value === '' || (!isNaN(numValue) && numValue >= 0)) {
+                        if (value === '' || (!isNaN(numValue) && numValue >= 0.01)) {
                           setProductForm(prev => ({ ...prev, data: { ...prev.data, price: value } }))
                         }
                       }
@@ -618,7 +659,7 @@ export default function AdminPage() {
                         e.preventDefault()
                       }
                     }}
-                    placeholder="0.00"
+                    placeholder="0.01"
                     required
                   />
                 </div>
