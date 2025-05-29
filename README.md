@@ -269,7 +269,7 @@ Antes de executar o projeto, certifique-se de ter instalado:
 
 1. **Clone o repositório**:
    ```bash
-   git clone <url-do-repositorio>
+   git clone https://github.com/joaopgodoy/online_store_project.git
    cd online_store_project/final_online_store_project
    ```
 
