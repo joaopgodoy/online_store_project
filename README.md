@@ -21,27 +21,93 @@
 - Cadastro de clientes e admins (nome, id, email, telefone, endereço)
 - Carrinho de compras (cliente escolhe produto, quantidade, compra com cartão (qualquer número aceito))
 - CRUD de produtos (admin)
-- Funcionalidade específica: Código de segurança gerado para a retirada dos produtos presencialmente
+- Funcionalidade específica: Código de segurança e QR Code gerados para a retirada dos produtos presencialmente
 
 ---
 
 ## 📝 2. Descrição do Projeto
 
-O projeto será uma Single-Page Application (SPA) desenvolvida usando HTML5, CSS3 e JavaScript. Na primeira fase, desenvolvemos **mockups estáticos** para planejar o visual e a navegação do sistema.
+O projeto **Near Market** é uma aplicação web completa desenvolvida com **Next.js 14, TypeScript e MongoDB** que simula um mercado de condomínio online. O sistema foi totalmente implementado e está funcional, oferecendo uma experiência completa de e-commerce.
 
-### Funcionalidades planejadas:
-- Tela inicial com login
-- Tela de listagem de produtos para clientes
-- Telas individuais para cada categoria de produto (Farmácia, Alimentos, etc)
-- Tela administrativa para cadastro de produtos
-- Tela de carrinho com os produtos selecionados pelos clientes
-- Tela de pagamento e checkout dos produtos
-- Navegação SPA simulada entre as telas
+### Funcionalidades Implementadas:
 
-### Informações salvas no servidor (futuramente):
-- Usuários (admin e clientes)
-- Produtos (detalhes e estoque)
-- Pedidos realizados
+#### 🔐 Sistema de Autenticação
+- **Cadastro de usuários** com validação completa de dados
+- **Login seguro** com JWT e bcryptjs
+- **Diferentes níveis de acesso** (cliente/admin)
+- **Validações robustas** de senha e email
+- **Redirecionamento automático** baseado no tipo de usuário
+
+#### 🛍️ Sistema de Produtos
+- **Catálogo completo** com produtos organizados por categorias
+- **Páginas individuais** de produto com detalhes completos
+- **Sistema de estoque** em tempo real
+- **Upload de imagens** para produtos
+- **Filtros e busca** por categorias
+- **Validação de disponibilidade** antes da compra
+
+#### 🛒 Carrinho de Compras
+- **Carrinho persistente** vinculado ao usuário logado
+- **Controle de quantidade** com validação de estoque
+- **Cálculo automático** de totais
+- **Remoção e edição** de itens
+- **Sincronização** entre cliente e servidor
+- **Restrição de acesso** apenas para usuários autenticados
+
+#### 💳 Sistema de Pagamento
+- **Cadastro de cartões** com validação completa
+- **Múltiplos cartões** por usuário
+- **Checkout seguro** com verificação de dados
+- **Validação de cartão** (número, data, CVC)
+- **Processo de pagamento** simulado
+
+#### 🎫 Funcionalidade Específica do Grupo
+- **Geração automática de código** único para cada compra
+- **QR Code dinâmico** para facilitar retirada presencial
+- **Persistência dos códigos** no histórico do usuário
+- **Interface clara** para apresentação dos códigos
+
+#### 👤 Perfil do Usuário
+- **Histórico completo** de pedidos realizados
+- **Gerenciamento de cartões** salvos
+- **Confirmação de retirada** de produtos
+- **Visualização de códigos** de todas as compras
+
+#### ⚙️ Painel Administrativo
+- **Dashboard completo** para administradores
+- **CRUD de produtos** (criar, editar, excluir)
+- **Gerenciamento de usuários** (promover, editar, excluir)
+- **Controle de estoque** em tempo real
+- **Upload e edição** de imagens de produtos
+- **Estatísticas** de vendas e usuários
+
+#### 🎨 Interface e Experiência
+- **Design responsivo** com Tailwind CSS
+- **Componentes reutilizáveis** com Radix UI
+- **Notificações** em tempo real com toast
+- **Loading states** e feedback visual
+- **Navegação intuitiva** entre páginas
+- **Tratamento de erros** completo
+
+### Tecnologias e Arquitetura:
+- **Frontend**: Next.js 14 com App Router, React, TypeScript
+- **Styling**: Tailwind CSS, Radix UI Components
+- **Backend**: Next.js API Routes com validação
+- **Banco de Dados**: MongoDB com Mongoose ODM
+- **Autenticação**: JWT personalizado com bcryptjs
+- **Estado Global**: Context API para Auth e Cart
+- **Validação**: Schemas customizados para dados
+- **Upload**: Sistema próprio para imagens de produtos
+
+### Diferenciais Implementados:
+- **Segurança**: Todas as rotas protegidas com middleware de autenticação
+- **Performance**: Otimizações de loading e cache
+- **UX/UI**: Interface moderna e intuitiva
+- **Escalabilidade**: Arquitetura modular e componentizada
+- **Robustez**: Tratamento completo de erros e edge cases
+- **Funcionalidade Única**: Sistema de QR Code para retirada presencial
+
+O projeto representa uma solução completa e funcional para um mercado online, com todas as funcionalidades essenciais de um e-commerce moderno, além da funcionalidade específica de códigos de retirada que simula a experiência de um mercado físico de condomínio.
 
 ---
 
