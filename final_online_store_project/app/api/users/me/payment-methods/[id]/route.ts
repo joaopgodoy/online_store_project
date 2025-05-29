@@ -7,7 +7,7 @@ import mongoose from 'mongoose'
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
@@ -21,6 +21,7 @@ export async function PATCH(
     }
 
     const token = authHeader.split(" ")[1]
+    const { id } = await params
     const { isDefault } = await req.json()
 
     try {
@@ -39,7 +40,7 @@ export async function PATCH(
 
       // Atualizar o cartão específico
       const updatedMethod = await PaymentMethod.findOneAndUpdate(
-        { _id: params.id, user: payload.sub },
+        { _id: id, user: payload.sub },
         { isDefault },
         { new: true }
       )
@@ -73,7 +74,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
@@ -87,7 +88,7 @@ export async function DELETE(
     }
 
     const token = authHeader.split(" ")[1]
-    const { id } = params
+    const { id } = await params
 
     // Validar se o ID é válido
     if (!mongoose.Types.ObjectId.isValid(id)) {

@@ -3,12 +3,16 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from '@/components/auth-provider'
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Package, CreditCard, Loader2, LogOut, ChevronDown, ChevronUp, Trash2, Check } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import axios from "axios"
 import {
@@ -22,6 +26,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface OrderItem {
   product: {
@@ -68,6 +81,15 @@ export default function ProfilePage() {
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>("")
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState<string>("")
+  
+  // Estados para adicionar cartão
+  const [addCardDialogOpen, setAddCardDialogOpen] = useState(false)
+  const [cardNumber, setCardNumber] = useState("")
+  const [cardName, setCardName] = useState("")
+  const [cardExpiry, setCardExpiry] = useState("")
+  const [cardCvc, setCardCvc] = useState("")
+  const [cardType, setCardType] = useState("credit")
+  const [addingCard, setAddingCard] = useState(false)
 
   // Redirecionar para login se não estiver autenticado
   useEffect(() => {
@@ -269,6 +291,143 @@ export default function ProfilePage() {
     }
   }
 
+  // Função para adicionar cartão
+  const addPaymentMethod = async () => {
+    if (!cardNumber || !cardName || !cardExpiry || !cardCvc || !cardType) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validar número do cartão (remover espaços e validar)
+    const cleanCardNumber = cardNumber.replace(/\s/g, "")
+    if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19 || !/^\d+$/.test(cleanCardNumber)) {
+      toast({
+        title: "Erro",
+        description: "Número do cartão inválido",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validar data de validade
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+      toast({
+        title: "Erro",
+        description: "Data de validade deve estar no formato MM/AA",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validar CVC
+    if (cardCvc.length < 3) {
+      toast({
+        title: "Erro",
+        description: "CVC deve ter pelo menos 3 dígitos",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setAddingCard(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Erro",
+          description: "Token de autenticação não encontrado",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const response = await axios.post('/api/users/me/payment-methods', {
+        cardNumber: cleanCardNumber,
+        cardName: cardName.trim(),
+        cardExpiry,
+        type: cardType
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      // Adicionar o novo método à lista local
+      if (response.data.paymentMethod) {
+        setPaymentMethods(prev => [response.data.paymentMethod, ...prev])
+      }
+
+      // Limpar formulário
+      setCardNumber("")
+      setCardName("")
+      setCardExpiry("")
+      setCardCvc("")
+      setCardType("credit")
+
+      setAddCardDialogOpen(false)
+
+      toast({
+        title: "Sucesso",
+        description: "Cartão adicionado com sucesso"
+      })
+    } catch (error: any) {
+      console.error('Erro ao adicionar cartão:', error)
+      toast({
+        title: "Erro",
+        description: error.response?.data?.message || "Erro ao adicionar cartão",
+        variant: "destructive"
+      })
+    } finally {
+      setAddingCard(false)
+    }
+  }
+
+  // Funções de formatação para os campos do cartão
+  const formatCardNumber = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    // Adiciona espaços a cada 4 dígitos
+    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ').trim()
+  }
+
+  const formatExpiry = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '')
+    // Adiciona barra após 2 dígitos
+    if (numbers.length >= 2) {
+      return numbers.slice(0, 2) + '/' + numbers.slice(2, 4)
+    }
+    return numbers
+  }
+
+  const formatCvc = (value: string) => {
+    // Remove tudo que não é número e limita a 4 dígitos
+    return value.replace(/\D/g, '').slice(0, 4)
+  }
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCardNumber(e.target.value)
+    // Limita a 19 caracteres (16 números + 3 espaços)
+    if (formatted.length <= 19) {
+      setCardNumber(formatted)
+    }
+  }
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiry(e.target.value)
+    setCardExpiry(formatted)
+  }
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCvc(e.target.value)
+    setCardCvc(formatted)
+  }
+
   if (!isAuthenticated || !user) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -416,11 +575,127 @@ export default function ProfilePage() {
                     Nenhum cartão cadastrado
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Adicione um cartão no checkout
+                    Adicione um cartão usando o botão abaixo
                   </p>
                 </div>
               )}
             </CardContent>
+            <CardFooter>
+              <Dialog open={addCardDialogOpen} onOpenChange={setAddCardDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Cartão
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Novo Cartão</DialogTitle>
+                    <DialogDescription>
+                      Preencha os dados do seu cartão para adicionar um novo método de pagamento.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Tipo do cartão</Label>
+                        <RadioGroup value={cardType} onValueChange={setCardType} className="flex gap-4 mt-2">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="credit" id="credit" />
+                            <Label htmlFor="credit">Crédito</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="debit" id="debit" />
+                            <Label htmlFor="debit">Débito</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="cardNumber">Número do Cartão</Label>
+                        <Input
+                          id="cardNumber"
+                          placeholder="0000 0000 0000 0000"
+                          value={cardNumber}
+                          onChange={handleCardNumberChange}
+                          maxLength={19}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="cardName">Nome no Cartão</Label>
+                        <Input
+                          id="cardName"
+                          placeholder="Nome completo"
+                          value={cardName}
+                          onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                          maxLength={50}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="cardExpiry">Validade</Label>
+                          <Input
+                            id="cardExpiry"
+                            placeholder="MM/AA"
+                            value={cardExpiry}
+                            onChange={handleExpiryChange}
+                            maxLength={5}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cardCvc">CVC</Label>
+                          <Input
+                            id="cardCvc"
+                            placeholder="123"
+                            value={cardCvc}
+                            onChange={handleCvcChange}
+                            maxLength={4}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setAddCardDialogOpen(false)
+                        setCardNumber("")
+                        setCardName("")
+                        setCardExpiry("")
+                        setCardCvc("")
+                        setCardType("credit")
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={addPaymentMethod}
+                      disabled={addingCard}
+                    >
+                      {addingCard ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adicionando...
+                        </>
+                      ) : (
+                        "Adicionar Cartão"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardFooter>
           </Card>
         </div>
 
@@ -535,6 +810,35 @@ export default function ProfilePage() {
                                 </div>
                               ))}
                             </div>
+                            
+                            {/* QR Code section - only show for non-completed orders */}
+                            {order.status !== 'completed' && order.pickupCode && (
+                              <div className="mt-4 pt-4 border-t">
+                                <h4 className="font-medium mb-3">Código de retirada:</h4>
+                                <div className="flex flex-col md:flex-row items-center gap-4">
+                                  <div className="text-center">
+                                    <p className="text-sm text-muted-foreground mb-2">Código numérico:</p>
+                                    <div className="bg-muted p-3 rounded-lg">
+                                      <p className="text-2xl font-bold tracking-wider font-mono">{order.pickupCode}</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-sm text-muted-foreground mb-2">QR Code:</p>
+                                    <Image 
+                                      src="/qrcode.png" 
+                                      alt="QR Code para retirada do pedido" 
+                                      width={100} 
+                                      height={100}
+                                      className="border rounded-lg"
+                                    />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted-foreground text-center mt-2">
+                                  Apresente qualquer uma das opções acima na loja física para retirar seu pedido
+                                </p>
+                              </div>
+                            )}
+                            
                             <div className="mt-3 pt-3 border-t">
                               <div className="flex justify-between items-center font-medium">
                                 <span>Total do pedido:</span>

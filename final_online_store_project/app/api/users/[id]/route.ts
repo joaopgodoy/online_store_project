@@ -7,11 +7,11 @@ import mongoose from 'mongoose'
 // PUT endpoint to update a user
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
-    const { id } = params
+    const { id } = await params
     const { name, email, apartment, admin, password } = await req.json()
     
     // Validar se o ID é válido
@@ -81,11 +81,11 @@ export async function PUT(
 // DELETE endpoint to delete a user
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
-    const { id } = params
+    const { id } = await params
     
     // Validar se o ID é válido
     if (!mongoose.Types.ObjectId.isValid(id)) {

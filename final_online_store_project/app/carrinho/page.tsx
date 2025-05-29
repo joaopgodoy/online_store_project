@@ -177,7 +177,22 @@ export default function CartPage() {
     setCardCvc(formatted)
   }
 
-  const savePaymentMethod = async () => {
+  // Função para alternar entre usar cartão existente e adicionar novo
+  const toggleCardForm = () => {
+    setShowNewCardForm(!showNewCardForm)
+    if (!showNewCardForm) {
+      // Ao mostrar formulário, limpar seleção de cartão existente
+      setSelectedPaymentMethod("")
+    } else {
+      // Ao ocultar formulário, selecionar primeiro cartão disponível
+      if (paymentMethods.length > 0) {
+        const defaultCard = paymentMethods.find(m => m.isDefault) || paymentMethods[0]
+        setSelectedPaymentMethod(defaultCard._id)
+      }
+    }
+  }
+
+  const savePaymentMethodAndGetId = async () => {
     try {
       if (!cardNumber || !cardName || !cardExpiry || !cardCvc) {
         toast({
@@ -185,7 +200,7 @@ export default function CartPage() {
           description: "Todos os campos do cartão são obrigatórios",
           variant: "destructive"
         })
-        return false
+        return null
       }
 
       // Validações específicas
@@ -196,7 +211,7 @@ export default function CartPage() {
           description: "Número do cartão deve ter entre 13 e 19 dígitos",
           variant: "destructive"
         })
-        return false
+        return null
       }
 
       if (cardExpiry.length !== 5) {
@@ -205,7 +220,7 @@ export default function CartPage() {
           description: "Data de validade deve estar no formato MM/AA",
           variant: "destructive"
         })
-        return false
+        return null
       }
 
       if (cardCvc.length < 3) {
@@ -214,7 +229,7 @@ export default function CartPage() {
           description: "CVC deve ter pelo menos 3 dígitos",
           variant: "destructive"
         })
-        return false
+        return null
       }
 
       // Pegar token do localStorage
@@ -225,15 +240,8 @@ export default function CartPage() {
           description: "Token de autenticação não encontrado",
           variant: "destructive"
         })
-        return false
+        return null
       }
-
-      console.log('Enviando dados do cartão:', {
-        cardNumber: cleanCardNumber,
-        cardName,
-        cardExpiry,
-        type: cardType
-      })
 
       const requestData = {
         cardNumber: cleanCardNumber,
@@ -259,13 +267,15 @@ export default function CartPage() {
       const data = await response.json()
       const newPaymentMethod = data.paymentMethod
       
-      if (!newPaymentMethod) {
+      if (!newPaymentMethod || !newPaymentMethod._id) {
         throw new Error('Método de pagamento não retornado pela API')
       }
       
-      // Adicionar à lista existente ao invés de substituir
+      // Atualizar estado local
       setPaymentMethods(prev => [...prev, newPaymentMethod])
       setSelectedPaymentMethod(newPaymentMethod._id)
+      
+      // Ocultar o formulário automaticamente após adicionar o cartão
       setShowNewCardForm(false)
 
       // Limpar campos
@@ -279,9 +289,10 @@ export default function CartPage() {
         description: "Método de pagamento adicionado com sucesso!"
       })
 
-      return true
+      // Retornar o ID do método de pagamento criado
+      return newPaymentMethod._id
     } catch (error: any) {
-      console.error('Erro completo ao salvar método de pagamento:', error)
+      console.error('Erro ao salvar método de pagamento:', error)
       
       let errorMessage = "Erro ao salvar método de pagamento"
       
@@ -303,25 +314,32 @@ export default function CartPage() {
         description: errorMessage,
         variant: "destructive"
       })
-      return false
+      return null
     }
   }
 
   const createOrder = async () => {
     try {
-      if (!selectedPaymentMethod && !showNewCardForm) {
+      let paymentMethodId = selectedPaymentMethod
+
+      // Verificar se precisamos salvar um novo cartão primeiro
+      if (showNewCardForm && (!selectedPaymentMethod || selectedPaymentMethod === "")) {
+        const savedPaymentMethodId = await savePaymentMethodAndGetId()
+        if (!savedPaymentMethodId) return null
+        
+        // Usar o ID retornado diretamente
+        paymentMethodId = savedPaymentMethodId
+        
+      }
+
+      // Se não temos método de pagamento selecionado
+      if (!paymentMethodId) {
         toast({
           title: "Erro",
           description: "Selecione um método de pagamento",
           variant: "destructive"
         })
         return null
-      }
-
-      // Se está usando um novo cartão, salvar primeiro
-      if (showNewCardForm) {
-        const saved = await savePaymentMethod()
-        if (!saved) return null
       }
 
       // Preparar items do pedido
@@ -334,10 +352,17 @@ export default function CartPage() {
       const orderData = {
         items: orderItems,
         total: total,
-        paymentMethod: selectedPaymentMethod
+        paymentMethod: paymentMethodId
       }
 
-      const response = await axios.post('/api/orders', orderData)
+      console.log('Dados do pedido:', orderData)
+
+      const token = localStorage.getItem('token')
+      const response = await axios.post('/api/orders', orderData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
       
       return response.data
     } catch (error: any) {
@@ -368,7 +393,7 @@ export default function CartPage() {
     setFinalTotal(total)
 
     try {
-      // Criar o pedido
+      // Criar o pedido (que irá adicionar cartão se necessário)
       const orderResult = await createOrder()
       
       if (orderResult) {
@@ -719,6 +744,22 @@ export default function CartPage() {
                 <p className="text-xs text-muted-foreground">
                   Este código é válido por 24 horas. Guarde-o com cuidado.
                 </p>
+              </div>
+
+              {/* QR Code */}
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Ou apresente este QR code:
+                </p>
+                <div className="flex justify-center">
+                  <Image 
+                    src="/qrcode.png" 
+                    alt="QR Code para retirada do pedido" 
+                    width={150} 
+                    height={150}
+                    className="border rounded-lg"
+                  />
+                </div>
               </div>
 
               <div className="border-t pt-4">

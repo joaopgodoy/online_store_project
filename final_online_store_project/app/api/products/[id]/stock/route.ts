@@ -5,12 +5,12 @@ import Product from '@/models/Product'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
     
-    const { id } = params
+    const { id } = await params
     const { quantity } = await request.json()
 
     // Validar se o ID é válido
@@ -72,12 +72,12 @@ export async function PATCH(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
     
-    const { id } = params
+    const { id } = await params
     const { quantity, action } = await request.json() // action: 'add' ou 'remove'
 
     if (!mongoose.Types.ObjectId.isValid(id)) {

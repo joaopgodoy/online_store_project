@@ -6,7 +6,7 @@ import mongoose from "mongoose"
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
@@ -20,7 +20,7 @@ export async function PUT(
     }
 
     const token = authHeader.split(" ")[1]
-    const { id } = params
+    const { id } = await params
 
     // Validar se o ID é válido
     if (!mongoose.Types.ObjectId.isValid(id)) {

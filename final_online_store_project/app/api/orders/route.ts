@@ -19,6 +19,8 @@ export async function POST(req: Request) {
     const token = authHeader.split(" ")[1]
     const { items, total, paymentMethod } = await req.json()
 
+    console.log('Dados recebidos para criar pedido:', { items, total, paymentMethod })
+
     try {
       // decodifica e valida o token
       const payload = jwt.verify(
@@ -28,6 +30,12 @@ export async function POST(req: Request) {
 
       // Validar dados do pedido
       if (!items || !items.length || !total || !paymentMethod) {
+        console.log('Dados incompletos:', { 
+          hasItems: !!items, 
+          itemsLength: items?.length, 
+          hasTotal: !!total, 
+          hasPaymentMethod: !!paymentMethod 
+        })
         return NextResponse.json(
           { message: "Dados do pedido incompletos" },
           { status: 400 }
@@ -60,6 +68,7 @@ export async function POST(req: Request) {
       })
 
     } catch (err) {
+      console.error('Erro JWT:', err)
       return NextResponse.json(
         { message: "Token expirado ou inválido" },
         { status: 401 }
