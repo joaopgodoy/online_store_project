@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { ShoppingCart, User, Menu, X } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { ShoppingCart, User, Menu, X, Loader2 } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from './auth-provider'
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
 
 const categorias = [
     { name: "Alimentos e Bebidas", url: "/categorias/alimentos-bebidas" },
@@ -18,10 +19,13 @@ const categorias = [
 
 export default function Header() {
     const pathname = usePathname()
+    const router = useRouter()
     const { items } = useCart()
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated, validateUser } = useAuth()
+    const { toast } = useToast()
     const [isMobile, setIsMobile] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isValidatingUser, setIsValidatingUser] = useState(false)
 
     // Calcular quantidade total de itens no carrinho apenas se autenticado
     const cartItemCount = isAuthenticated ? items.reduce(
@@ -50,6 +54,39 @@ export default function Header() {
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen)
+    }
+
+    const handleProfileClick = async () => {
+        if (!isAuthenticated) {
+            router.push("/login")
+            return
+        }
+
+        setIsValidatingUser(true)
+        console.log('Profile button clicked, validating user...')
+        
+        try {
+            const isValid = await validateUser()
+            if (isValid) {
+                router.push("/perfil")
+            } else {
+                toast({
+                    title: "Sessão expirada",
+                    description: "Sua sessão expirou ou sua conta não foi encontrada. Por favor, faça login novamente.",
+                    variant: "destructive"
+                })
+                router.push("/login")
+            }
+        } catch (error) {
+            console.error('Error validating user:', error)
+            toast({
+                title: "Erro",
+                description: "Erro ao validar usuário. Tente novamente.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsValidatingUser(false)
+        }
     }
 
     return (
@@ -109,12 +146,17 @@ export default function Header() {
 
                     {/* Ícones de Usuário e Carrinho */}
                     <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                        <Link
-                            href="/perfil"
-                            className="p-2 rounded-full hover:bg-gray-100"
+                        <button
+                            onClick={handleProfileClick}
+                            disabled={isValidatingUser}
+                            className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <User className="w-5 h-5 text-gray-700" />
-                        </Link>
+                            {isValidatingUser ? (
+                                <Loader2 className="w-5 h-5 text-gray-700 animate-spin" />
+                            ) : (
+                                <User className="w-5 h-5 text-gray-700" />
+                            )}
+                        </button>
 
                         <Link
                             href="/carrinho"
@@ -151,20 +193,35 @@ export default function Header() {
                             ))}
 
                             {isAuthenticated && (
-                                <Link
-                                    href="/carrinho"
-                                    className={`flex items-center space-x-2 hover:text-primary transition-colors ${
-                                        pathname === "/carrinho" ? "text-primary" : ""
-                                    }`}
-                                >
-                                    <ShoppingCart className="h-5 w-5" />
-                                    <span>Carrinho</span>
-                                    {cartItemCount > 0 && (
-                                        <Badge variant="destructive" className="ml-auto">
-                                            {cartItemCount}
-                                        </Badge>
-                                    )}
-                                </Link>
+                                <>
+                                    <button
+                                        onClick={handleProfileClick}
+                                        disabled={isValidatingUser}
+                                        className="flex items-center space-x-2 hover:text-primary transition-colors text-sm py-2 text-left w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isValidatingUser ? (
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                        ) : (
+                                            <User className="h-5 w-5" />
+                                        )}
+                                        <span>Perfil</span>
+                                    </button>
+
+                                    <Link
+                                        href="/carrinho"
+                                        className={`flex items-center space-x-2 hover:text-primary transition-colors ${
+                                            pathname === "/carrinho" ? "text-primary" : ""
+                                        }`}
+                                    >
+                                        <ShoppingCart className="h-5 w-5" />
+                                        <span>Carrinho</span>
+                                        {cartItemCount > 0 && (
+                                            <Badge variant="destructive" className="ml-auto">
+                                                {cartItemCount}
+                                            </Badge>
+                                        )}
+                                    </Link>
+                                </>
                             )}
                         </div>
                     </nav>
