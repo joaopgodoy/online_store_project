@@ -9,12 +9,7 @@ export default function Footer() {
   
   // Função para verificar se o usuário é admin
   const isAdmin = (user: any) => {
-    return user && (
-      (user.name === "admin" && 
-        user.email === "admin@email.com" && 
-        user.apartment === "00") || 
-      user.admin === true
-    )
+    return user && user.admin === true
   }
 
   return (
@@ -42,12 +37,32 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
-                  href={isAuthenticated ? (isAdmin(user) ? "/admin" : "/perfil") : "/login"} 
+                  href="/perfil" 
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {isAuthenticated ? (isAdmin(user) ? "Administração" : "Meu Perfil") : "Login"}
+                  Meu Perfil
                 </Link>
               </li>
+              {!isAuthenticated && (
+                <li>
+                  <Link 
+                    href="/login" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Login
+                  </Link>
+                </li>
+              )}
+              {isAuthenticated && isAdmin(user) && (
+                <li>
+                  <Link 
+                    href="/admin" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Administração
+                  </Link>
+                </li>
+              )}
               {!isAuthenticated && (
                 <li>
                   <Link 

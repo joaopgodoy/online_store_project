@@ -49,6 +49,17 @@ export function createApiHandler(handler: ApiHandler, options: ApiHandlerOptions
           return authResult.error!
         }
         context.userId = authResult.userId
+        
+        // Check if user is admin when required
+        if (options.requireAdmin) {
+          // Check if user is admin
+          const User = (await import('@/models/User')).default
+          const user = await User.findById(authResult.userId)
+          if (!user || !user.admin) {
+            return createErrorResponse('Acesso negado. Privilégios de administrador necessários.', 403)
+          }
+          context.isAdmin = true
+        }
       }
 
       return await handler(context)

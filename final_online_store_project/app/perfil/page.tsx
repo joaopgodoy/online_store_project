@@ -67,17 +67,12 @@ interface PaymentMethod {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, refreshUser } = useAuth()
   const { toast } = useToast()
   
   // Função para verificar se o usuário é admin
   const isAdmin = (user: any) => {
-    return user && (
-      (user.name === "admin" && 
-       user.email === "admin@email.com" && 
-       user.apartment === "00") || 
-      user.admin === true
-    )
+    return user && user.admin === true
   }
   
   const [orders, setOrders] = useState<Order[]>([])
@@ -107,6 +102,13 @@ export default function ProfilePage() {
       router.push("/login")
     }
   }, [isAuthenticated, router])
+
+  // Atualizar dados do usuário quando a página carregar
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      refreshUser()
+    }
+  }, [isAuthenticated, refreshUser])
 
   // Buscar pedidos do usuário
   useEffect(() => {
@@ -175,12 +177,18 @@ export default function ProfilePage() {
   }, [user, toast])
 
   const handleLogout = () => {
-    logout()
+    // Primeiro executar o logout para limpar os dados de autenticação
+    logout();
+    
+    // Forçar um recarregamento da página em vez de navegação suave
+    // isso garante que todas as requisições sejam canceladas e o estado seja realmente limpo
+    window.location.href = '/';
+    
+    // Mostrar toast - isso vai aparecer brevemente antes do redirecionamento
     toast({
       title: "Logout realizado",
       description: "Você foi desconectado com sucesso."
-    })
-    router.push("/")
+    });
   }
 
   const formatDate = (dateString: string) => {

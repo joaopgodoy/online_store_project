@@ -49,4 +49,4 @@ export const POST = createApiHandler(async ({ req }) => {
     url: fileUrl,
     filename
   }, 'Arquivo enviado com sucesso')
-})
+}, { requireAuth: true, requireAdmin: true })

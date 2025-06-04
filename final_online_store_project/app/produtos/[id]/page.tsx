@@ -106,23 +106,6 @@ export default function ProductPage({ params }: ProductPageProps) {
       return
     }
 
-    // Verificar se o usuário é admin
-    const isAdmin = user && (
-      (user.name === "admin" && 
-       user.email === "admin@email.com" && 
-       user.apartment === "00") || 
-      user.admin === true
-    )
-
-    if (isAdmin) {
-      toast({
-        title: "Acesso negado",
-        description: "Administradores não podem adicionar itens ao carrinho.",
-        variant: "destructive"
-      })
-      return
-    }
-
     if (!getAvailability() || getAvailableQuantity() === 0) return
 
     // Verificar se já tem este produto no carrinho

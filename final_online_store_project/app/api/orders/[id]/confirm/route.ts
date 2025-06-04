@@ -2,11 +2,6 @@ import { createApiHandler, createSuccessResponse, createErrorResponse } from '@/
 import Order from "@/models/Order"
 
 export const PUT = createApiHandler(async ({ params, userId }) => {
-  // Handle special admin user
-  if (userId === 'admin_hardcoded') {
-    return createErrorResponse('Admin não pode confirmar pedidos', 403)
-  }
-
   // Buscar o pedido e verificar se pertence ao usuário
   const order = await Order.findOne({
     _id: params!.id,

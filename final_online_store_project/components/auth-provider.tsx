@@ -16,6 +16,7 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
+  refreshUser: () => Promise<void>
   isAuthenticated: boolean
 }
 
@@ -31,18 +32,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user")
     const savedToken = localStorage.getItem("token")
     
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser))
-      setToken(savedToken)
-      
-      // Configurar o token no axios
-      api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+    if (savedToken) {
+      try {
+        // Verificar se o token parece válido (formato básico)
+        if (typeof savedToken !== 'string' || savedToken.split('.').length !== 3) {
+          throw new Error('Token inválido');
+        }
+        
+        setToken(savedToken)
+        
+        // Configurar o token no axios
+        api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+        axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+        
+        // Buscar dados atualizados do usuário do servidor
+        fetchUserData(savedToken)
+      } catch (error) {
+        console.error("Erro ao restaurar a sessão:", error)
+        logout() // Limpar a sessão inválida
+      }
     }
   }, [])
+
+  const fetchUserData = async (authToken: string) => {
+    try {
+      const response = await api.get("/api/users/me", {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        },
+        // Adicionar timeout para evitar requisições pendentes
+        timeout: 5000
+      })
+      
+      const userData = response.data
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+    } catch (error) {
+      // Se falhou ao buscar dados do usuário, fazer logout
+      console.error("Erro ao buscar dados do usuário:", error)
+      
+      // Limpar completamente o estado de autenticação
+      setUser(null)
+      setToken(null)
+      localStorage.removeItem("user")
+      localStorage.removeItem("token")
+      
+      // Remover headers de autenticação
+      delete api.defaults.headers.common['Authorization']
+      delete axios.defaults.headers.common['Authorization']
+    }
+  }
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -73,15 +114,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem("user")
-    localStorage.removeItem("token")
+  const refreshUser = async () => {
+    if (!token) return
     
-    // Remover o token do axios
-    delete api.defaults.headers.common['Authorization']
-    delete axios.defaults.headers.common['Authorization']
+    try {
+      const response = await api.get("/api/users/me", {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const userData = response.data
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+    } catch (error) {
+      console.error("Erro ao atualizar dados do usuário:", error)
+    }
+  }
+
+  const logout = () => {
+    // Criar um array com todas as keys do localStorage que queremos remover
+    const keysToRemove = ["user", "token", "cart"];
+    
+    // Remover todos os itens
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Limpar axios e todas as suas instâncias
+    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['Authorization'];
+    
+    // Adicionar um interceptor para cancelar requisições futuras
+    const interceptorId = axios.interceptors.request.use(
+      config => {
+        // Rejeitar todas as requisições até que seja removido
+        return Promise.reject(new Error('Operação cancelada - usuário deslogado'));
+      }
+    );
+    
+    // Após um pequeno delay, remover o interceptor
+    setTimeout(() => {
+      axios.interceptors.request.eject(interceptorId);
+    }, 500);
+    
+    // Limpar estado de autenticação
+    setUser(null);
+    setToken(null);
   }
 
   return (
@@ -91,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         login,
         logout,
+        refreshUser,
         isAuthenticated: !!user,
       }}
     >

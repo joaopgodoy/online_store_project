@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -15,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
-import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X, LogOut } from "lucide-react"
+import { Pencil, Trash2, Plus, Package, Users, Shield, User, Upload, X } from "lucide-react"
 import Image from "next/image"
 
 interface Product {
@@ -60,7 +61,7 @@ export default function AdminPage() {
   
   const [userForm, setUserForm] = useState({
     open: false,
-    data: { name: "", email: "", apartment: "", password: "" },
+    data: { name: "", email: "", apartment: "", password: "", admin: false },
     editing: null as User | null,
     submitting: false
   })
@@ -68,16 +69,14 @@ export default function AdminPage() {
   const { toast } = useToast()
 
   // Check if user is admin
-  const isHardcodedAdmin = (user: any) => {
-    if (!user) return false;
-    
-    // Verifica tanto se é o admin hardcoded quanto se tem o campo admin=true
-    return (
-      (user.name === "admin" && 
-       user.email === "admin@email.com" && 
-       user.apartment === "00") || 
-      user.admin === true
-    );
+  const isAdmin = (user: any) => {
+    return user && user.admin === true;
+  }
+
+  // Check if the user being edited is the current user (prevent self-admin revocation)
+  const isEditingSelf = (editingUser: User | null) => {
+    if (!editingUser || !user) return false;
+    return editingUser._id === user._id;
   }
 
   // Authentication and authorization check
@@ -98,7 +97,7 @@ export default function AdminPage() {
     // Wait for user data to be loaded
     if (!user) return
 
-    if (!isHardcodedAdmin(user)) {
+    if (!isAdmin(user)) {
       toast({
         title: "Acesso negado",
         description: "Você não tem permissão para acessar esta página.",
@@ -155,7 +154,15 @@ export default function AdminPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users')
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       if (!response.ok) throw new Error('Erro ao carregar usuários')
       const data = await response.json()
       setUsers(data)
@@ -178,7 +185,7 @@ export default function AdminPage() {
   const resetUserForm = () => {
     setUserForm({
       open: false,
-      data: { name: "", email: "", apartment: "", password: "" },
+      data: { name: "", email: "", apartment: "", password: "", admin: false },
       editing: null,
       submitting: false
     })
@@ -215,7 +222,8 @@ export default function AdminPage() {
           name: user.name,
           email: user.email,
           apartment: user.apartment,
-          password: ""
+          password: "",
+          admin: user.admin || false
         }
       })
     } else {
@@ -243,6 +251,9 @@ export default function AdminPage() {
     setProductForm(prev => ({ ...prev, submitting: true }))
 
     try {
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+
       const productData = {
         name: data.name,
         description: data.description,
@@ -258,7 +269,10 @@ export default function AdminPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(productData),
       })
 
@@ -297,11 +311,14 @@ export default function AdminPage() {
     setUserForm(prev => ({ ...prev, submitting: true }))
 
     try {
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+
       const userData = {
         name: data.name,
         email: data.email,
         apartment: data.apartment,
-        admin: false, // Always false for regular users
+        admin: data.admin, // Now allow setting admin status
         ...(data.password && { password: data.password })
       }
 
@@ -310,7 +327,10 @@ export default function AdminPage() {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(userData),
       })
 
@@ -338,21 +358,26 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (type: 'product' | 'user', id: string) => {
-    try {
-      // Se for um usuário, verifica se é admin
-      if (type === 'user') {
-        const userToDelete = users.find(user => user._id === id);
-        if (userToDelete?.admin) {
-          toast({ 
-            title: "Operação não permitida", 
-            description: "Não é possível excluir um administrador",
-            variant: "destructive" 
-          });
-          return;
-        }
-      }
+    // Verificar se está tentando excluir o usuário atual
+    if (type === 'user' && user && id === user._id) {
+      toast({ 
+        title: "Operação não permitida", 
+        description: "Não é possível excluir seu próprio usuário", 
+        variant: "destructive" 
+      })
+      return
+    }
 
-      const response = await fetch(`/api/${type === 'product' ? 'products' : 'users'}/${id}`, { method: 'DELETE' })
+    try {
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`/api/${type === 'product' ? 'products' : 'users'}/${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
       if (!response.ok) throw new Error(`Erro ao excluir ${type === 'product' ? 'produto' : 'usuário'}`)
 
       toast({ title: "Sucesso", description: `${type === 'product' ? 'Produto' : 'Usuário'} excluído com sucesso` })
@@ -382,11 +407,17 @@ export default function AdminPage() {
     setUploadingImage(true)
 
     try {
+      // Obter token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+
       const formData = new FormData()
       formData.append('file', file)
 
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       })
 
@@ -430,18 +461,8 @@ export default function AdminPage() {
     }))
   }
   
-  // Função para realizar logout
-  const handleLogout = () => {
-    logout()
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso."
-    })
-    router.push("/")
-  }
-
   // Show loading state while checking authentication
-  if (isAuthenticated === undefined || !user || !isHardcodedAdmin(user)) {
+  if (isAuthenticated === undefined || !user || !isAdmin(user)) {
     return (
       <div className="container mx-auto py-16 px-4 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -452,15 +473,11 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-8">
         <div>
           <h1 className="text-3xl font-bold">Painel Administrativo</h1>
           <p className="text-muted-foreground">Gerencie produtos e usuários da loja</p>
         </div>
-        <Button variant="outline" onClick={handleLogout} className="self-start sm:self-auto">
-          <LogOut className="w-4 h-4 mr-2" />
-          Sair
-        </Button>
       </div>
 
       <Tabs defaultValue="products" className="w-full">
@@ -649,45 +666,40 @@ export default function AdminPage() {
                         </TableCell>
                         <TableCell>{new Date(user.createdAt).toLocaleDateString('pt-BR')}</TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            {/* Impedir a edição de administradores */}
-                            {!user.admin ? (
-                              <>
-                                <Button variant="outline" size="sm" onClick={() => openUserForm(user)}>
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-destructive hover:text-destructive"
+                          <div className="flex justify-end space-x-2">                            <Button variant="outline" size="sm" onClick={() => openUserForm(user)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            {/* Não permitir exclusão do usuário atual */}
+                            {!isEditingSelf(user) && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja excluir o usuário "{user.name}"?
+                                      Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDelete('user', user._id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Tem certeza que deseja excluir o usuário "{user.name}"?
-                                        Esta ação não pode ser desfeita e todos os dados do usuário serão removidos permanentemente.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => handleDelete('user', user._id)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
-                                        Excluir
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </>
-                            ) : (
-                              <Badge variant="outline">Protegido</Badge>
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             )}
                           </div>
                         </TableCell>
@@ -970,6 +982,23 @@ export default function AdminPage() {
                   placeholder="Digite a senha"
                   required={!userForm.editing}
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="user-admin"
+                  checked={userForm.data.admin}
+                  disabled={Boolean(userForm.editing && user && userForm.editing._id === user._id)}
+                  onCheckedChange={(checked) => setUserForm(prev => ({ ...prev, data: { ...prev.data, admin: !!checked } }))}
+                />
+                <Label htmlFor="user-admin" className={userForm.editing && user && userForm.editing._id === user._id ? "text-muted-foreground" : ""}>
+                  Administrador
+                </Label>
+                {userForm.editing && user && userForm.editing._id === user._id && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Não é possível revogar suas próprias permissões de administrador)
+                  </span>
+                )}
               </div>
             </div>
 

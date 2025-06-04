@@ -28,22 +28,13 @@ export default function Header() {
 
     // Função para verificar se o usuário é admin
     const isAdmin = (user: any) => {
-        return user && (
-            (user.name === "admin" && 
-             user.email === "admin@email.com" && 
-             user.apartment === "00") || 
-            user.admin === true
-        )
+        return user && user.admin === true
     }
 
     // Função para lidar com o clique no botão de perfil
     const handleProfileClick = (e: React.MouseEvent) => {
         e.preventDefault()
-        if (isAdmin(user)) {
-            router.push('/admin')
-        } else {
-            router.push('/perfil')
-        }
+        router.push('/perfil')
     }
 
     // Calcular quantidade total de itens no carrinho apenas se autenticado
@@ -161,19 +152,17 @@ export default function Header() {
                             <User className="w-5 h-5 text-gray-700" />
                         </button>
 
-                        {!isAdmin(user) && (
-                            <Link
-                                href="/carrinho"
-                                className="p-2 relative rounded-full hover:bg-gray-100"
-                            >
-                                <ShoppingCart className="w-5 h-5 text-gray-700" />
-                                {cartItemCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
-                                        {cartItemCount}
-                                    </span>
-                                )}
-                            </Link>
-                        )}
+                        <Link
+                            href="/carrinho"
+                            className="p-2 relative rounded-full hover:bg-gray-100"
+                        >
+                            <ShoppingCart className="w-5 h-5 text-gray-700" />
+                            {cartItemCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                                    {cartItemCount}
+                                </span>
+                            )}
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -209,7 +198,7 @@ export default function Header() {
                                 </Link>
                             ))}
 
-                            {isAuthenticated && !isAdmin(user) && (
+                            {isAuthenticated && (
                                 <Link
                                     href="/carrinho"
                                     className={`flex items-center space-x-2 hover:text-primary transition-colors ${

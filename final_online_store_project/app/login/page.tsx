@@ -21,7 +21,7 @@ import { useAuth } from "@/components/auth-provider"
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { login, isAuthenticated, user } = useAuth()
+  const { login, isAuthenticated } = useAuth()
 
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
@@ -31,13 +31,10 @@ export default function LoginPage() {
   // redireciona se já estiver logado
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.admin) {
-        router.push("/admin")
-      } else {
-        router.push("/perfil")
-      }
+      // Todos os usuários, incluindo administradores, são redirecionados para a página de perfil
+      router.push("/perfil")
     }
-  }, [isAuthenticated, user, router])
+  }, [isAuthenticated, router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -58,7 +55,7 @@ export default function LoginPage() {
         description: "Você foi autenticado com sucesso.",
       })
       
-      // O redirecionamento será feito pelo useEffect que monitora isAuthenticated e user
+      // O redirecionamento será feito pelo useEffect que monitora isAuthenticated
     } catch (error) {
       toast({
         title: "Erro no login",
