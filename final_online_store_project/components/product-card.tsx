@@ -4,23 +4,31 @@ import { Badge } from "@/components/ui/badge"
 import type { Produto } from "@/lib/types"
 
 interface ProductCardProps {
-  produto: Produto
+  product?: Produto
+  produto?: Produto
 }
 
-export default function ProductCard({ produto }: ProductCardProps) {
+export default function ProductCard({ product, produto }: ProductCardProps) {
+  // Use product or produto (for backward compatibility)
+  const prod = product || produto
+  
+  if (!prod) {
+    return null
+  }
+
   // Função helper para pegar o valor correto independente do formato - CORRIGIDO: priorizar campos do database (em inglês)
   const getName = () => {
-    console.log('ProductCard - Produto:', produto) // Debug
-    return produto.name || produto.name || "Produto sem name"
+    console.log('ProductCard - Produto:', prod) // Debug
+    return prod.name || "Produto sem nome"
   }
-  const getDescription = () => produto.description || produto.descricao || ""
-  const getPrice = () => produto.price || produto.preco || 0
-  const getCategory = () => produto.category || produto.categoria || ""
-  const getImage = () => produto.image || produto.imagem || "/placeholder.jpg?height=300&width=300"
-  const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
+  const getDescription = () => prod.description || prod.descricao || ""
+  const getPrice = () => prod.price || prod.preco || 0
+  const getCategory = () => prod.category || prod.categoria || ""
+  const getImage = () => prod.image || prod.imagem || "/placeholder.jpg?height=300&width=300"
+  const getAvailability = () => prod.inStock !== undefined ? prod.inStock : prod.disponivel !== undefined ? prod.disponivel : true
 
   return (
-    <Link href={`/produtos/${produto.id}`} className="group">
+    <Link href={`/produtos/${prod.id}`} className="group">
       <div className="relative overflow-hidden rounded-lg border bg-background transition-colors hover:bg-accent">
         <div className="relative aspect-square overflow-hidden">
           <Image

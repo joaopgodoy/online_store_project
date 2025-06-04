@@ -4,10 +4,11 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingCart, User, Menu, X } from "lucide-react"
+import { ShoppingCart, User, Menu, X, Search } from "lucide-react"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from './auth-provider'
 import { Badge } from "@/components/ui/badge"
+import SearchBar from "./search-bar"
 
 const categorias = [
     { name: "Alimentos e Bebidas", url: "/categorias/alimentos-bebidas" },
@@ -23,6 +24,7 @@ export default function Header() {
     const { isAuthenticated, user } = useAuth()
     const [isMobile, setIsMobile] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
 
     // Função para verificar se o usuário é admin
     const isAdmin = (user: any) => {
@@ -67,10 +69,23 @@ export default function Header() {
     // Fechar menu quando mudar de rota
     useEffect(() => {
         setIsMenuOpen(false)
+        setIsSearchOpen(false)
     }, [pathname])
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen)
+        // Fechar pesquisa se estiver aberta
+        if (isSearchOpen) {
+            setIsSearchOpen(false)
+        }
+    }
+
+    const toggleSearch = () => {
+        setIsSearchOpen(!isSearchOpen)
+        // Fechar menu se estiver aberto
+        if (isMenuOpen) {
+            setIsMenuOpen(false)
+        }
     }
 
     return (
@@ -128,8 +143,16 @@ export default function Header() {
                         ))}
                     </nav>
 
-                    {/* Ícones de Usuário e Carrinho */}
+                    {/* Ícones de Pesquisa, Usuário e Carrinho */}
                     <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                        <button
+                            onClick={toggleSearch}
+                            className="p-2 rounded-full hover:bg-gray-100"
+                            title="Pesquisar produtos"
+                        >
+                            <Search className="w-5 h-5 text-gray-700" />
+                        </button>
+
                         <button
                             onClick={handleProfileClick}
                             className="p-2 rounded-full hover:bg-gray-100"
@@ -155,11 +178,23 @@ export default function Header() {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <SearchBar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
             {/* Menu Mobile Dropdown */}
             {isMobile && isMenuOpen && (
                 <div className="mt-4 pb-4 border-t border-gray-200 bg-white">
                     <nav className="container mx-auto px-4">
                         <div className="flex flex-col space-y-3 py-3">
+                            {/* Search option for mobile */}
+                            <button
+                                onClick={toggleSearch}
+                                className="flex items-center space-x-2 text-sm py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                            >
+                                <Search className="h-5 w-5" />
+                                <span>Pesquisar</span>
+                            </button>
+
                             {categorias.map((categoria) => (
                                 <Link
                                     key={categoria.url}
@@ -174,7 +209,7 @@ export default function Header() {
                                 </Link>
                             ))}
 
-                            {isAuthenticated && (
+                            {isAuthenticated && !isAdmin(user) && (
                                 <Link
                                     href="/carrinho"
                                     className={`flex items-center space-x-2 hover:text-primary transition-colors ${
