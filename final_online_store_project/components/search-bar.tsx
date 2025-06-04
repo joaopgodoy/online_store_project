@@ -52,7 +52,7 @@ export default function SearchBar({ isOpen, onClose }: SearchBarProps) {
   if (!isOpen) return null
 
   return (
-    <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg z-50 animate-in slide-in-from-top-2 duration-200">
+    <div className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm z-50 animate-in slide-in-from-top-0 duration-150">
       <div className="container mx-auto px-4 py-4">
         <form onSubmit={handleSearch} className="flex items-center gap-3">
           <div className="relative flex-1">

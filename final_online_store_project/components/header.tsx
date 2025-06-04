@@ -80,7 +80,7 @@ export default function Header() {
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className={`sticky top-0 z-50 w-full ${!isSearchOpen ? 'border-b' : ''} bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60`}>
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
                     {/* Menu Hambúrguer (Mobile) */}
@@ -102,7 +102,7 @@ export default function Header() {
                     <Link href="/" className="flex items-center gap-2 flex-shrink-0">
                         <div className={`relative ${isMobile ? 'w-10 h-10' : 'w-8 h-8'}`}>
                             <Image
-                                src="/placeholder.jpg"
+                                src="/placeholder-icon.png"
                                 alt="Near Market Logo"
                                 width={isMobile ? 40 : 32}
                                 height={isMobile ? 40 : 32}
@@ -172,7 +172,7 @@ export default function Header() {
 
             {/* Menu Mobile Dropdown */}
             {isMobile && isMenuOpen && (
-                <div className="mt-4 pb-4 border-t border-gray-200 bg-white">
+                <div className="mt-4 pb-4 border-t border-b border-gray-200 bg-white">
                     <nav className="container mx-auto px-4">
                         <div className="flex flex-col space-y-3 py-3">
                             {/* Search option for mobile */}
