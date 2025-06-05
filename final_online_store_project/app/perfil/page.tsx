@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus, ShieldCheck } from "lucide-react"
+import { Package, CreditCard, Loader2, LogOut, ChevronDown, Trash2, Check, Plus, ShieldCheck, X } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import axios from "axios"
 import {
@@ -85,6 +85,7 @@ export default function ProfilePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>("")
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState<string>("")
   
   // Estados para adicionar cartão
@@ -300,6 +301,49 @@ export default function ProfilePage() {
       })
     } finally {
       setConfirmDialogOpen(false)
+      setSelectedOrderId("")
+    }
+  }
+
+  // Função para cancelar pedido
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Erro",
+          description: "Token de autenticação não encontrado",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const response = await axios.put(`/api/orders/${orderId}/cancel`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      // Atualizar o pedido na lista local
+      setOrders(prev => prev.map(order => 
+        order._id === orderId 
+          ? { ...order, status: 'cancelled' }
+          : order
+      ))
+      
+      toast({
+        title: "Sucesso",
+        description: "Pedido cancelado com sucesso! Produtos devolvidos ao estoque."
+      })
+    } catch (error: any) {
+      console.error('Erro ao cancelar pedido:', error)
+      toast({
+        title: "Erro",
+        description: error.response?.data?.message || "Erro ao cancelar pedido",
+        variant: "destructive"
+      })
+    } finally {
+      setCancelDialogOpen(false)
       setSelectedOrderId("")
     }
   }
@@ -572,10 +616,9 @@ export default function ProfilePage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Excluir método de pagamento</AlertDialogTitle>
+                              <AlertDialogTitle>Excluir cartão</AlertDialogTitle>
                               <AlertDialogDescription>
                                 Tem certeza que deseja excluir o cartão {method.type === 'credit' ? 'Crédito' : 'Débito'} terminado em {method.lastFourDigits}?
-                                Esta ação não pode ser desfeita.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -748,12 +791,14 @@ export default function ProfilePage() {
                               <h3 className="font-medium">Pedido #{order._id.slice(-6)}</h3>
                               <Badge variant={
                                 order.status === 'completed' ? 'default' : 
-                                order.status === 'processing' ? 'secondary' : 'outline'
+                                order.status === 'processing' ? 'secondary' : 
+                                order.status === 'cancelled' ? 'destructive' : 'outline'
                               }>
                                 {order.status === 'completed' ? 'Concluído' : 
-                                 order.status === 'processing' ? 'Processando' : order.status}
+                                 order.status === 'processing' ? 'Processando' : 
+                                 order.status === 'cancelled' ? 'Cancelado' : order.status}
                               </Badge>
-                              {order.pickupCode && order.status !== 'completed' && (
+                              {order.pickupCode && order.status !== 'completed' && order.status !== 'cancelled' && (
                                 <Badge variant="outline" className="font-mono">
                                   Código: {order.pickupCode}
                                 </Badge>
@@ -765,44 +810,88 @@ export default function ProfilePage() {
                           </div>
                           <div className="flex items-center gap-2">
                             {order.status === 'processing' && (
-                              <AlertDialog open={confirmDialogOpen && selectedOrderId === order._id} onOpenChange={(open) => {
-                                setConfirmDialogOpen(open)
-                                if (!open) setSelectedOrderId("")
-                              }}>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedOrderId(order._id)
-                                      setConfirmDialogOpen(true)
-                                    }}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    <Check className="h-4 w-4 mr-1" />
-                                    Confirmar Retirada
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar retirada do pedido</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Confirma que você retirou o pedido #{order._id.slice(-6)} com código {order.pickupCode}?
-                                      <br />
-                                      <strong>Total: R$ {order.total.toFixed(2)}</strong>
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={() => confirmOrderPickup(order._id)}
+                              <>
+                                {/* Botão Confirmar Retirada */}
+                                <AlertDialog open={confirmDialogOpen && selectedOrderId === order._id} onOpenChange={(open) => {
+                                  setConfirmDialogOpen(open)
+                                  if (!open) setSelectedOrderId("")
+                                }}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedOrderId(order._id)
+                                        setConfirmDialogOpen(true)
+                                      }}
                                       className="bg-green-600 hover:bg-green-700"
                                     >
                                       <Check className="h-4 w-4 mr-1" />
-                                      Confirmar Retirada
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                                      Confirmar
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Confirmar retirada</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Confirma que você retirou o pedido #{order._id.slice(-6)} com código {order.pickupCode}?
+                                        <br />
+                                        <strong>Total: R$ {order.total.toFixed(2)}</strong>
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => confirmOrderPickup(order._id)}
+                                        className="bg-green-600 hover:bg-green-700"
+                                      >
+                                        Confirmar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+
+                                {/* Botão Cancelar Pedido */}
+                                <AlertDialog open={cancelDialogOpen && selectedOrderId === order._id} onOpenChange={(open) => {
+                                  setCancelDialogOpen(open)
+                                  if (!open) setSelectedOrderId("")
+                                }}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => {
+                                        setSelectedOrderId(order._id)
+                                        setCancelDialogOpen(true)
+                                      }}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Cancelar
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Cancelar pedido</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja cancelar o pedido #{order._id.slice(-6)}?
+                                        <br />
+                                        <strong>Total: R$ {order.total.toFixed(2)}</strong>
+                                        <br />
+                                        <br />
+                                        Os produtos serão devolvidos ao estoque automaticamente.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Manter</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => cancelOrder(order._id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Cancelar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </>
                             )}
                             <CollapsibleTrigger asChild>
                               <Button variant="ghost" size="sm">
@@ -840,8 +929,8 @@ export default function ProfilePage() {
                               ))}
                             </div>
                             
-                            {/* QR Code section - only show for non-completed orders */}
-                            {order.status !== 'completed' && order.pickupCode && (
+                            {/* QR Code section - only show for non-completed and non-cancelled orders */}
+                            {order.status !== 'completed' && order.status !== 'cancelled' && order.pickupCode && (
                               <div className="mt-4 pt-4 border-t">
                                 <h4 className="font-medium mb-3">Código de retirada:</h4>
                                 <div className="flex flex-col md:flex-row items-center gap-4">
