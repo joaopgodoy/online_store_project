@@ -394,31 +394,8 @@ final_online_store_project/
 - **Backend**: Next.js API Routes, Node.js
 - **Banco de Dados**: MongoDB com Mongoose
 - **Autenticação**: JWT com bcryptjs
-- **Upload de Imagens**: Sistema de upload local
+- **Upload de Imagens**: Sistema de upload no banco de dados (GridFS)
 - **UI Components**: Radix UI, Lucide Icons
-
-### Deploy
-
-Para deploy em produção, recomendamos:
-
-1. **Vercel** (recomendado para Next.js):
-   ```bash
-   npm i -g vercel
-   vercel
-   ```
-
-2. **Docker** (opcional):
-   ```dockerfile
-   # Exemplo de Dockerfile
-   FROM node:18-alpine
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm ci --only=production
-   COPY . .
-   RUN npm run build
-   EXPOSE 3000
-   CMD ["npm", "start"]
-   ```
 
 ### Troubleshooting
 
