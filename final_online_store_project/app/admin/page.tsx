@@ -460,7 +460,36 @@ export default function AdminPage() {
     }
   }
 
-  const removeImage = () => {
+  const removeImage = async () => {
+    const currentImageId = productForm.data.image
+    
+    // If we're editing and there's an existing image, delete it from GridFS
+    if (productForm.editing && currentImageId && !currentImageId.startsWith('http')) {
+      try {
+        // Obter token de autenticação do localStorage
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`/api/images?fileId=${currentImageId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        if (response.ok) {
+          toast({
+            title: "Sucesso",
+            description: "Imagem removida com sucesso!"
+          })
+        } else {
+          console.error('Error deleting image from server')
+        }
+      } catch (error) {
+        console.error('Error deleting image:', error)
+        // Continue even if deletion fails
+      }
+    }
+    
     setProductForm(prev => ({
       ...prev,
       data: { ...prev.data, image: "" }

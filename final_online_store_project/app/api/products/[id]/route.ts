@@ -56,6 +56,22 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     return createErrorResponse('Produto não encontrado', 404)
   }
   
+  // Handle image replacement - delete old image if a new one is provided
+  let finalImage = currentProduct.image
+  if (image !== undefined && image !== null && image !== '') {
+    // New image provided - delete the old one if it exists and is different
+    if (currentProduct.image && currentProduct.image !== image) {
+      try {
+        await deleteImageFromGridFS(currentProduct.image)
+        console.log(`Deleted old image: ${currentProduct.image}`)
+      } catch (error) {
+        console.error('Error deleting old image from GridFS:', error)
+        // Continue with update even if image deletion fails
+      }
+    }
+    finalImage = image
+  }
+  
   // Determinar status baseado no estoque
   const finalInStock = Number(availableQuantity) > 0 ? (inStock !== undefined ? inStock : true) : false
   
@@ -63,7 +79,7 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     name,
     description,
     price: Number(price),
-    image: image !== undefined && image !== null && image !== '' ? image : currentProduct.image, // Preserve existing image if no new image
+    image: finalImage,
     category,
     inStock: finalInStock,
     availableQuantity: Number(availableQuantity)
