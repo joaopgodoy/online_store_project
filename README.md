@@ -321,6 +321,7 @@ npm run dev
 ```
 
 O servidor estará disponível em: `http://localhost:3000`
+Ou acesse `https://near-market-store.vercel.app`
 
 ### Estrutura do Projeto
 
@@ -356,7 +357,7 @@ final_online_store_project/
 
 ### Primeiros Passos Após Instalação
 
-1. **Acesse a aplicação** em `http://localhost:3000`
+1. **Acesse a aplicação** em `http://localhost:3000` ou acesse `https://near-market-store.vercel.app`
 
 2. **Use a conta de administrador para acessar a página administrativa**:
    - Email: `admin@email.com`
