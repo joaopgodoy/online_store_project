@@ -3,10 +3,10 @@ import { getImageFromGridFS } from '@/lib/gridfs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fileId: string } }
+  { params }: { params: Promise<{ fileId: string }> }
 ) {
   try {
-    const { fileId } = params
+    const { fileId } = await params
     
     if (!fileId) {
       return new NextResponse('File ID is required', { status: 400 })

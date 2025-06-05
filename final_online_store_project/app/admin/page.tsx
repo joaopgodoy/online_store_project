@@ -193,6 +193,12 @@ export default function AdminPage() {
 
   const openProductForm = (product?: Product) => {
     if (product) {
+      // Extract fileId from image URL if it's a GridFS URL
+      let imageValue = product.image
+      if (product.image && product.image.startsWith('/api/images/')) {
+        imageValue = product.image.replace('/api/images/', '')
+      }
+      
       setProductForm({
         open: true,
         editing: product,
@@ -201,7 +207,7 @@ export default function AdminPage() {
           name: product.name,
           description: product.description,
           price: product.price.toString(),
-          image: product.image,
+          image: imageValue,
           category: product.category,
           inStock: product.inStock,
           availableQuantity: product.availableQuantity.toString()
@@ -459,6 +465,11 @@ export default function AdminPage() {
       ...prev,
       data: { ...prev.data, image: "" }
     }))
+    
+    // Limpar o input file também
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
   
   // Show loading state while checking authentication

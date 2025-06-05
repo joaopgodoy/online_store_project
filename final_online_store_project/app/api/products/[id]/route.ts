@@ -50,6 +50,12 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     return createErrorResponse('Já existe um produto com esse nome', 400)
   }
   
+  // Get current product to preserve image if no new image provided
+  const currentProduct = await Product.findById(params!.id)
+  if (!currentProduct) {
+    return createErrorResponse('Produto não encontrado', 404)
+  }
+  
   // Determinar status baseado no estoque
   const finalInStock = Number(availableQuantity) > 0 ? (inStock !== undefined ? inStock : true) : false
   
@@ -57,7 +63,7 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     name,
     description,
     price: Number(price),
-    image: image || null, // Store GridFS file ID or null
+    image: image !== undefined && image !== null && image !== '' ? image : currentProduct.image, // Preserve existing image if no new image
     category,
     inStock: finalInStock,
     availableQuantity: Number(availableQuantity)
