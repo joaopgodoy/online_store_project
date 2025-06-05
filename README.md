@@ -321,6 +321,7 @@ npm run dev
 ```
 
 O servidor estará disponível em: `http://localhost:3000`
+
 Ou acesse `https://near-market-store.vercel.app`
 
 ### Estrutura do Projeto
