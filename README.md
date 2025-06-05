@@ -277,7 +277,7 @@ A página de perfil foi **amplamente testada**:
 Antes de executar o projeto, certifique-se de ter instalado:
 
 - **Node.js** (versão 18 ou superior)
-- **npm** ou **yarn**
+- **npm**
 - **MongoDB** (local ou MongoDB Atlas)
 
 ### Configuração do Ambiente
