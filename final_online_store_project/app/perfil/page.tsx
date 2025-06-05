@@ -103,12 +103,7 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, router])
 
-  // Atualizar dados do usuário quando a página carregar
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      refreshUser()
-    }
-  }, [isAuthenticated, refreshUser])
+  // Dados do usuário já são carregados automaticamente pelo AuthProvider
 
   // Buscar pedidos do usuário
   useEffect(() => {

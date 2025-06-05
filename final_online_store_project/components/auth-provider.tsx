@@ -30,29 +30,37 @@ const api = axios.create({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token")
+    const savedUser = localStorage.getItem("user")
     
-    if (savedToken) {
+    if (savedToken && savedUser) {
       try {
         // Verificar se o token parece válido (formato básico)
         if (typeof savedToken !== 'string' || savedToken.split('.').length !== 3) {
           throw new Error('Token inválido');
         }
         
+        const userData = JSON.parse(savedUser)
+        
         setToken(savedToken)
+        setUser(userData)
         
         // Configurar o token no axios
         api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
         axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
         
-        // Buscar dados atualizados do usuário do servidor
-        fetchUserData(savedToken)
+        // Marcar como inicializado - não buscar dados do servidor automaticamente
+        setIsInitialized(true)
       } catch (error) {
         console.error("Erro ao restaurar a sessão:", error)
         logout() // Limpar a sessão inválida
+        setIsInitialized(true)
       }
+    } else {
+      setIsInitialized(true)
     }
   }, [])
 
@@ -129,6 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("user", JSON.stringify(userData))
     } catch (error) {
       console.error("Erro ao atualizar dados do usuário:", error)
+      // Se houver erro de autenticação, fazer logout
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        logout()
+      }
     }
   }
 
