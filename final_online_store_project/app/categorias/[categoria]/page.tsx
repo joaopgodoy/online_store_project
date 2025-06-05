@@ -83,7 +83,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 
   const produtosFiltrados = products.filter((produto) => {
     const categoriaName = categoriaMapeada[categoriaSlug as keyof typeof categoriaMapeada]
-    return produto.categoria === categoriaName
+    return produto.category === categoriaName
   })
 
   if (error) {
@@ -111,7 +111,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       {produtosFiltrados.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {produtosFiltrados.map((produto) => (
-            <ProductCard key={produto.id} produto={produto} />
+            <ProductCard key={produto.id} product={produto} />
           ))}
         </div>
       ) : (

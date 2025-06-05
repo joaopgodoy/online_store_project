@@ -819,17 +819,21 @@ export default function ProfilePage() {
                               {order.items.map((item, index) => (
                                 <div key={index} className="flex items-center gap-3 p-2 bg-muted/30 rounded">
                                   {item.product.image && (
-                                    <img 
-                                      src={item.product.image} 
-                                      alt={item.product.name}
-                                      className="w-12 h-12 object-cover rounded"
-                                    />
+                                    <div className="relative w-12 h-12 rounded overflow-hidden">
+                                      <Image 
+                                        src={item.product.image} 
+                                        alt={item.product.name}
+                                        fill
+                                        sizes="48px"
+                                        className="object-cover"
+                                      />
+                                    </div>
                                   )}
                                   <div className="flex-1">
                                     <p className="font-medium">{item.product.name}</p>
                                     <p className="text-sm text-muted-foreground">
                                       Quantidade: {item.quantity} • 
-                                      R$ {item.price.toFixed(2)} cada
+                                      R$ {(item.price || item.product.price || 0).toFixed(2)} cada
                                     </p>
                                   </div>
                                 </div>

@@ -50,7 +50,7 @@ export default function Home() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {produtosDestacados.map((produto) => (
-                <ProductCard key={produto.id} produto={produto} />
+                <ProductCard key={produto.id} product={produto} />
               ))}
             </div>
             <div className="mt-10 text-center">

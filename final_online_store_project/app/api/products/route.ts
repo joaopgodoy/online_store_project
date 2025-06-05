@@ -11,13 +11,13 @@ export const GET = createApiHandler(async () => {
   const transformedProducts = products.map(product => ({
     id: product._id.toString(),
     name: product.name,
-    descricao: product.description,
-    preco: product.price,
-    categoria: product.category,
-    imagem: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
-    disponivel: product.inStock && product.availableQuantity > 0,
-    estoque: product.availableQuantity,
-    vendidos: product.sold
+    description: product.description,
+    price: product.price,
+    category: product.category,
+    image: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
+    inStock: product.inStock && product.availableQuantity > 0,
+    availableQuantity: product.availableQuantity,
+    sold: product.sold
   }))
   
   return NextResponse.json(transformedProducts)

@@ -67,12 +67,12 @@ export default function ProductPage({ params }: ProductPageProps) {
   const getName = () => {
     return produto.name || "Produto sem nome"
   }
-  const getDescription = () => produto.description || produto.descricao || ""
-  const getPrice = () => produto.price || produto.preco || 0
-  const getCategory = () => produto.category || produto.categoria || ""
-  const getImage = () => produto.image || produto.imagem || "/placeholder.jpg?height=300&width=300"
-  const getAvailability = () => produto.inStock !== undefined ? produto.inStock : produto.disponivel !== undefined ? produto.disponivel : true
-  const getAvailableQuantity = () => (produto as any)?.availableQuantity ?? (produto as any)?.estoque ?? 0
+  const getDescription = () => produto.description || ""
+  const getPrice = () => produto.price || 0
+  const getCategory = () => produto.category || ""
+  const getImage = () => produto.image || "/placeholder.jpg?height=300&width=300"
+  const getAvailability = () => produto.inStock ?? true
+  const getAvailableQuantity = () => produto.availableQuantity ?? 0
 
   const incrementarQuantidade = () => {
     const itemNoCarrinho = items.find(item => item.id === produto.id)
@@ -127,11 +127,13 @@ export default function ProductPage({ params }: ProductPageProps) {
     const produtoNormalizado = {
       id: produto.id,
       name: getName(),
-      descricao: getDescription(),
-      preco: getPrice(),
-      categoria: getCategory(),
-      imagem: getImage(),
-      disponivel: getAvailability()
+      description: getDescription(),
+      price: getPrice(),
+      category: getCategory(),
+      image: getImage(),
+      inStock: getAvailability(),
+      availableQuantity: getAvailableQuantity(),
+      sold: produto.sold || 0
     }
 
     try {

@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createApiHandler, createSuccessResponse, createErrorResponse } from '@/lib/api-handler'
 import { listImagesFromGridFS, deleteImageFromGridFS } from '@/lib/gridfs'
 

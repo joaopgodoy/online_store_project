@@ -63,7 +63,7 @@ export default function CartPage() {
   // Função para obter estoque disponível de um produto
   const getAvailableStock = (productId: string) => {
     const product = products.find(p => p.id === productId)
-    return product?.availableQuantity ?? product?.estoque ?? 0
+    return product?.availableQuantity ?? 0
   }
 
   // Função para incrementar quantidade com validação de estoque
@@ -346,7 +346,7 @@ export default function CartPage() {
       const orderItems = items.map(item => ({
         product: item.id,
         quantity: item.quantidade,
-        price: item.preco
+        price: item.price
       }))
 
       const orderData = {
@@ -479,7 +479,7 @@ export default function CartPage() {
               <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
                 <div className="relative w-20 h-20 overflow-hidden rounded-md">
                   <Image
-                    src={item.imagem || "/placeholder.jpg?height=80&width=80"}
+                    src={item.image || "/placeholder.jpg?height=80&width=80"}
                     alt={item.name}
                     fill
                     className="object-cover"
@@ -488,8 +488,8 @@ export default function CartPage() {
 
                 <div className="flex-1">
                   <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.categoria}</p>
-                  <p className="font-semibold">R$ {item.preco.toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">{item.category}</p>
+                  <p className="font-semibold">R$ {item.price.toFixed(2)}</p>
                   {isMaxQuantity && (
                     <p className="text-xs text-amber-600 mt-1">
                       Quantidade máxima atingida
@@ -544,7 +544,7 @@ export default function CartPage() {
                     <span>
                       {item.quantidade}x {item.name}
                     </span>
-                    <span>R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                    <span>R$ {(item.price * item.quantidade).toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="border-t pt-2 mt-4">

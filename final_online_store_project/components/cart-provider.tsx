@@ -72,11 +72,13 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         const cartItems = data.cart.map((item: any) => ({
           id: item.product._id,
           name: item.product.name,
-          descricao: item.product.description,
-          preco: item.product.price,
-          categoria: item.product.category,
-          imagem: item.product.image,
-          disponivel: item.product.inStock,
+          description: item.product.description,
+          price: item.product.price,
+          category: item.product.category,
+          image: item.product.image,
+          inStock: item.product.inStock,
+          availableQuantity: item.product.availableQuantity,
+          sold: item.product.sold,
           quantidade: item.quantity
         }))
         setItems(cartItems)
@@ -297,7 +299,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
     }
   }
 
-  const total = items.reduce((sum, item) => sum + item.preco * item.quantidade, 0)
+  const total = items.reduce((sum, item) => sum + item.price * item.quantidade, 0)
   const totalFixed = parseFloat(total.toFixed(2))
 
   return (

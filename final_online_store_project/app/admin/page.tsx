@@ -134,13 +134,13 @@ export default function AdminPage() {
       const transformedData = data.map((product: any) => ({
         _id: product.id || product._id || "",
         name: product.name || "",
-        description: product.descricao || product.description || "",
-        price: Number(product.preco || product.price || 0),
-        image: product.imagem || product.image || "",
-        category: product.categoria || product.category || "",
-        inStock: Boolean(product.disponivel ?? product.inStock ?? true),
-        availableQuantity: Number(product.estoque || product.availableQuantity || 0),
-        sold: Number(product.vendidos || product.sold || 0)
+        description: product.description || "",
+        price: Number(product.price || 0),
+        image: product.image || "",
+        category: product.category || "",
+        inStock: Boolean(product.inStock ?? true),
+        availableQuantity: Number(product.availableQuantity || 0),
+        sold: Number(product.sold || 0)
       }))
       
       setProducts(transformedData)

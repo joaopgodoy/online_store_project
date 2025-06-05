@@ -11,15 +11,7 @@ const transformProduct = (product: any) => ({
   category: product.category,
   inStock: product.inStock && product.availableQuantity > 0,
   availableQuantity: product.availableQuantity,
-  sold: product.sold,
-  // Campos compatíveis com interface antiga
-  descricao: product.description,
-  preco: product.price,
-  categoria: product.category,
-  imagem: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
-  disponivel: product.inStock && product.availableQuantity > 0,
-  estoque: product.availableQuantity,
-  vendidos: product.sold
+  sold: product.sold
 })
 
 export const GET = createApiHandler(async ({ params }) => {
