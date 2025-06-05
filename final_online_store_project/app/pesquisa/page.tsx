@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import ProductCard from '@/components/product-card'
 import type { Produto } from '@/lib/types'
 
-export default function PesquisaPage() {
+function PesquisaContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
@@ -146,5 +146,22 @@ export default function PesquisaPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function PesquisaPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            <span className="ml-2 text-gray-600">Carregando...</span>
+          </div>
+        </div>
+      </div>
+    }>
+      <PesquisaContent />
+    </Suspense>
   )
 }
