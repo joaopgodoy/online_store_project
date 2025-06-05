@@ -42,8 +42,8 @@ O projeto **Near Market** é uma aplicação web completa desenvolvida com **Nex
 - **Catálogo completo** com produtos organizados por categorias
 - **Páginas individuais** de produto com detalhes completos
 - **Sistema de estoque** em tempo real
-- **Upload de imagens** para produtos
-- **Filtros e busca** por categorias
+- **Upload de imagens** para produtos no banco de dados (GridFS)
+- **Filtros e busca** por categorias e barra de pesquisa
 - **Validação de disponibilidade** antes da compra
 
 #### 🛒 Carrinho de Compras
@@ -70,20 +70,29 @@ O projeto **Near Market** é uma aplicação web completa desenvolvida com **Nex
 #### 👤 Perfil do Usuário
 - **Histórico completo** de pedidos realizados
 - **Gerenciamento de cartões** salvos
-- **Confirmação de retirada** de produtos
+- **Confirmação e cancelamento de retirada** de produtos
 - **Visualização de códigos** de todas as compras
 
 #### ⚙️ Painel Administrativo
 - **Dashboard completo** para administradores
 - **CRUD de produtos** (criar, editar, excluir)
-- **Gerenciamento de usuários** (promover, editar, excluir)
+- **Gerenciamento de usuários** (promover, rebaixar, editar, excluir)
 - **Controle de estoque** em tempo real
-- **Upload e edição** de imagens de produtos
+- **Upload e edição** de imagens de produtos no banco de dados (GridFS)
 - **Estatísticas** de vendas e usuários
+
+#### 🔍 Sistema de Busca
+- **Busca inteligente** de produtos em tempo real
+- **Interface de pesquisa** com overlay moderno
+- **Atalhos de teclado** (Cmd/Ctrl + K) para acesso rápido
+- **Página dedicada** de resultados de pesquisa
+- **API de busca** otimizada para consultas rápidas
+- **Integração no header** com ícone de pesquisa
 
 #### 🎨 Interface e Experiência
 - **Design responsivo** com Tailwind CSS
 - **Componentes reutilizáveis** com Radix UI
+- **Biblioteca completa** de componentes UI (Dialog, Command, Input, etc.)
 - **Notificações** em tempo real com toast
 - **Loading states** e feedback visual
 - **Navegação intuitiva** entre páginas
@@ -91,21 +100,23 @@ O projeto **Near Market** é uma aplicação web completa desenvolvida com **Nex
 
 ### Tecnologias e Arquitetura:
 - **Frontend**: Next.js 14 com App Router, React, TypeScript
-- **Styling**: Tailwind CSS, Radix UI Components
+- **Styling**: Tailwind CSS, Radix UI Components (Dialog, Command, Input, etc.)
 - **Backend**: Next.js API Routes com validação
 - **Banco de Dados**: MongoDB com Mongoose ODM
 - **Autenticação**: JWT personalizado com bcryptjs
 - **Estado Global**: Context API para Auth e Cart
 - **Validação**: Schemas customizados para dados
 - **Upload**: Sistema próprio para imagens de produtos
+- **Busca**: Sistema de pesquisa integrado com API otimizada
 
 ### Diferenciais Implementados:
 - **Segurança**: Todas as rotas protegidas com middleware de autenticação
 - **Performance**: Otimizações de loading e cache
-- **UX/UI**: Interface moderna e intuitiva
+- **UX/UI**: Interface moderna e intuitiva com sistema de busca avançado
 - **Escalabilidade**: Arquitetura modular e componentizada
 - **Robustez**: Tratamento completo de erros e edge cases
 - **Funcionalidade Única**: Sistema de QR Code para retirada presencial
+- **Busca Inteligente**: Sistema de pesquisa com atalhos de teclado e interface moderna
 
 O projeto representa uma solução completa e funcional para um mercado online, com todas as funcionalidades essenciais de um e-commerce moderno, além da funcionalidade específica de códigos de retirada que simula a experiência de um mercado físico de condomínio.
 
@@ -122,6 +133,7 @@ graph TD
   Farmacia[Farmácia]
   Produto[Produto]
   Carrinho[Carrinho]
+  Pesquisa[Pesquisa]
   Login[Login]
   Usuario[Usuário]
   Admin[Admin]
@@ -138,6 +150,7 @@ graph TD
   Home <--> Limpeza
   Home <--> Farmacia
   Home <--> Carrinho
+  Home <--> Pesquisa
   Home <--> Login
   Home <--> TodosProdutos
 
@@ -148,10 +161,12 @@ graph TD
 
   Produto <--> Carrinho
   Produto <--> Login
+  Pesquisa <--> Produto
 
   Login <--> Usuario
   Usuario <--> Carrinho
   TodosProdutos <--> Carrinho
+  TodosProdutos <--> Pesquisa
   Carrinho <--> Checkout
   Checkout <--> CodigoGerado
 
@@ -276,8 +291,12 @@ Antes de executar o projeto, certifique-se de ter instalado:
 2. **Instale as dependências**:
    ```bash
    npm install
-   # ou
-   yarn install
+   ```
+
+   Caso dê algum tipo de erro neste caso, tente rodar
+
+   ```bash
+   npm install --legacy-peer-deps
    ```
 
 3. **Configure as variáveis de ambiente**:
@@ -299,27 +318,9 @@ Antes de executar o projeto, certifique-se de ter instalado:
 
 ```bash
 npm run dev
-# ou
-yarn dev
 ```
 
 O servidor estará disponível em: `http://localhost:3000`
-
-#### Modo de Produção
-
-1. **Build do projeto**:
-   ```bash
-   npm run build
-   # ou
-   yarn build
-   ```
-
-2. **Iniciar servidor de produção**:
-   ```bash
-   npm start
-   # ou
-   yarn start
-   ```
 
 ### Estrutura do Projeto
 
@@ -328,13 +329,22 @@ final_online_store_project/
 ├── app/                   # Páginas e rotas da aplicação
 │   ├── admin/             # Painel administrativo
 │   ├── api/               # API routes (backend)
+│   │   ├── auth/          # Endpoints de autenticação
+│   │   ├── products/      # Endpoints de produtos
+│   │   ├── search/        # Endpoint de busca
+│   │   └── users/         # Endpoints de usuários
 │   ├── cadastro/          # Página de cadastro/registro
 │   ├── carrinho/          # Página do carrinho
 │   ├── categorias/        # Páginas de categorias de produtos
 │   ├── login/             # Página de login/cadastro
 │   ├── perfil/            # Página de perfil do usuário
+│   ├── pesquisa/          # Página de resultados de busca
 │   └── produtos/          # Páginas de produtos
 ├── components/            # Componentes reutilizáveis
+│   ├── ui/                # Componentes UI (Dialog, Command, Input, etc.)
+│   ├── header.tsx         # Cabeçalho com busca integrada
+│   ├── search-bar.tsx     # Componente de busca com overlay
+│   └── ...                # Outros componentes
 ├── contexts/              # Contextos React (Auth, Cart)
 ├── hooks/                 # Hooks customizados
 ├── lib/                   # Utilitários e configurações
@@ -343,14 +353,6 @@ final_online_store_project/
 ├── styles/                # Arquivos de estilo CSS
 └── types/                 # Definições de tipos TypeScript
    ```
-
-### Scripts Disponíveis
-
-- `npm run dev` - Executa em modo desenvolvimento
-- `npm run build` - Cria build de produção
-- `npm start` - Inicia servidor de produção
-- `npm run lint` - Executa linting do código
-- `npm run type-check` - Verifica tipos TypeScript
 
 ### Primeiros Passos Após Instalação
 
@@ -371,12 +373,18 @@ final_online_store_project/
    - Adicione e apague produtos
    - Adicione e apague usuários
 
-5. **Crie uma conta de cliente**
+5. **Use a conta de cliente**
+   - Email: `cliente@email.com`
+   - Senha: `cliente123@`
+      - Se preferir, crie sua própria conta com cadastro
    - Adicione e retire produtos do carrinho
    - Adicione e remova cartões a sua conta
    - Finalize as suas compras
    - Cheque os pedidos feitos
    - Retire seu pedido (simulado através de uma confirmação no seu perfil)
+   - Repita os passos e cancele o pedido
+
+**Todas as funcionalidades de cliente são possíveis também para administradores**
 
 ### Tecnologias Utilizadas
 
@@ -419,6 +427,7 @@ Para deploy em produção, recomendamos:
 **Erro de dependências**:
 - Delete `node_modules` e `package-lock.json`
 - Execute `npm install` novamente
+- Se der erro, execute `npm install --legacy-peer-deps`
 
 **Erro de build**:
 - Verifique se todas as variáveis de ambiente estão configuradas
