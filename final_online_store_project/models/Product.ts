@@ -16,8 +16,9 @@ const ProductSchema = new Schema({
     min: 0
   },
   image: {
-    type: String,  // URL da imagem
-    required: true
+    type: String,  // GridFS file ID
+    required: false,
+    default: null
   },
   category: {
     type: String,

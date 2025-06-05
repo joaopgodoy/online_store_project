@@ -1,12 +1,13 @@
 import { createApiHandler, createErrorResponse, createSuccessResponse } from '@/lib/api-handler'
 import Product from '@/models/Product'
+import { deleteImageFromGridFS } from '@/lib/gridfs'
 
 const transformProduct = (product: any) => ({
   id: product._id.toString(),
   name: product.name,
   description: product.description,
   price: product.price,
-  image: product.image,
+  image: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
   category: product.category,
   inStock: product.inStock && product.availableQuantity > 0,
   availableQuantity: product.availableQuantity,
@@ -15,7 +16,7 @@ const transformProduct = (product: any) => ({
   descricao: product.description,
   preco: product.price,
   categoria: product.category,
-  imagem: product.image,
+  imagem: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
   disponivel: product.inStock && product.availableQuantity > 0,
   estoque: product.availableQuantity,
   vendidos: product.sold
@@ -56,7 +57,7 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     name,
     description,
     price: Number(price),
-    image: image || "/placeholder.jpg?height=300&width=300",
+    image: image || null, // Store GridFS file ID or null
     category,
     inStock: finalInStock,
     availableQuantity: Number(availableQuantity)
@@ -78,11 +79,23 @@ export const PUT = createApiHandler(async ({ req, params }) => {
 }, { validateId: true })
 
 export const DELETE = createApiHandler(async ({ params }) => {
-  const result = await Product.findByIdAndDelete(params!.id)
+  const product = await Product.findById(params!.id)
   
-  if (!result) {
+  if (!product) {
     return createErrorResponse('Produto não encontrado', 404)
   }
+  
+  // Delete the product image from GridFS if it exists
+  if (product.image) {
+    try {
+      await deleteImageFromGridFS(product.image)
+    } catch (error) {
+      console.error('Error deleting image from GridFS:', error)
+      // Continue with product deletion even if image deletion fails
+    }
+  }
+  
+  const result = await Product.findByIdAndDelete(params!.id)
   
   return createSuccessResponse(undefined, 'Produto excluído com sucesso')
 }, { validateId: true })

@@ -37,7 +37,7 @@ export const GET = createApiHandler(async ({ req }) => {
     descricao: product.description,
     preco: product.price,
     categoria: product.category,
-    imagem: product.image,
+    imagem: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
     disponivel: product.inStock && product.availableQuantity > 0,
     estoque: product.availableQuantity,
     vendidos: product.sold

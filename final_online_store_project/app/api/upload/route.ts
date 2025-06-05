@@ -1,5 +1,5 @@
 import { createApiHandler, createSuccessResponse, createErrorResponse } from '@/lib/api-handler'
-import { writeFile, mkdir } from 'fs/promises'
+import { uploadImageToGridFS } from '@/lib/gridfs'
 import path from 'path'
 
 export const POST = createApiHandler(async ({ req }) => {
@@ -30,23 +30,17 @@ export const POST = createApiHandler(async ({ req }) => {
   const extension = path.extname(file.name)
   const filename = `product_${timestamp}${extension}`
 
-  // Criar diretório se não existir
-  const uploadDir = path.join(process.cwd(), 'public', 'products')
   try {
-    await mkdir(uploadDir, { recursive: true })
+    // Upload para GridFS
+    const fileId = await uploadImageToGridFS(buffer, filename, file.type)
+
+    return createSuccessResponse({
+      fileId: fileId.toString(),
+      filename,
+      url: `/api/images/${fileId.toString()}` // URL para servir a imagem
+    }, 'Arquivo enviado com sucesso')
   } catch (error) {
-    // Diretório já existe
+    console.error('Error uploading to GridFS:', error)
+    return createErrorResponse('Erro ao fazer upload do arquivo', 500)
   }
-
-  // Salvar arquivo
-  const filepath = path.join(uploadDir, filename)
-  await writeFile(filepath, buffer)
-
-  // Retornar URL do arquivo
-  const fileUrl = `/products/${filename}`
-
-  return createSuccessResponse({
-    url: fileUrl,
-    filename
-  }, 'Arquivo enviado com sucesso')
 }, { requireAuth: true, requireAdmin: true })

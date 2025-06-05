@@ -258,7 +258,7 @@ export default function AdminPage() {
         name: data.name,
         description: data.description,
         price,
-        image: data.image || "/placeholder.jpg?height=300&width=300",
+        image: data.image || null, // Store GridFS file ID or null
         category: data.category,
         inStock: quantity > 0 ? data.inStock : false,
         availableQuantity: quantity
@@ -428,10 +428,10 @@ export default function AdminPage() {
 
       const data = await response.json()
       
-      // Atualizar o campo de imagem no formulário
+      // Atualizar o campo de imagem no formulário com o fileId
       setProductForm(prev => ({
         ...prev,
-        data: { ...prev.data, image: data.url }
+        data: { ...prev.data, image: data.fileId }
       }))
 
       toast({
@@ -843,7 +843,9 @@ export default function AdminPage() {
                 {productForm.data.image && (
                   <div className="relative w-48 h-48 border rounded-lg overflow-hidden bg-gray-50">
                     <Image
-                      src={productForm.data.image}
+                      src={productForm.data.image.startsWith('http') || productForm.data.image.startsWith('/') 
+                        ? productForm.data.image 
+                        : `/api/images/${productForm.data.image}`}
                       alt="Preview"
                       fill
                       className="object-cover"
@@ -883,7 +885,7 @@ export default function AdminPage() {
                   {!productForm.data.image && (
                     <div className="space-y-2">
                       <Label htmlFor="product-image-url" className="text-sm text-muted-foreground">
-                        Ou insira uma URL da imagem
+                        Ou insira uma URL externa da imagem
                       </Label>
                       <Input
                         id="product-image-url"

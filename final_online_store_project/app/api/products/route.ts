@@ -14,7 +14,7 @@ export const GET = createApiHandler(async () => {
     descricao: product.description,
     preco: product.price,
     categoria: product.category,
-    imagem: product.image,
+    imagem: product.image ? `/api/images/${product.image}` : '/placeholder.jpg?height=300&width=300',
     disponivel: product.inStock && product.availableQuantity > 0,
     estoque: product.availableQuantity,
     vendidos: product.sold
@@ -48,12 +48,12 @@ export const POST = createApiHandler(async ({ req }) => {
   // Determine status based on stock - if stock is 0, product becomes unavailable
   const finalInStock = Number(availableQuantity) > 0 ? (inStock !== undefined ? inStock : true) : false
 
-  // Create new product
+  // Create new product - image now expects a GridFS file ID
   const newProduct = new Product({
     name,
     description,
     price: Number(price),
-    image: image || "/placeholder.jpg?height=300&width=300",
+    image: image || null, // Store GridFS file ID or null
     category,
     inStock: finalInStock,
     availableQuantity: Number(availableQuantity),
@@ -68,7 +68,7 @@ export const POST = createApiHandler(async ({ req }) => {
       name: savedProduct.name,
       description: savedProduct.description,
       price: savedProduct.price,
-      image: savedProduct.image,
+      image: savedProduct.image ? `/api/images/${savedProduct.image}` : '/placeholder.jpg?height=300&width=300',
       category: savedProduct.category,
       inStock: savedProduct.inStock,
       availableQuantity: savedProduct.availableQuantity,
