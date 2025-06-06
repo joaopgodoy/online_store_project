@@ -1,6 +1,6 @@
 import mongoose, { Schema, model, models } from 'mongoose'
 
-const CartItemSchema = new Schema({
+const CartItem = new Schema({
   product: {
     type: Schema.Types.ObjectId,
     ref: 'Product',
@@ -15,6 +15,6 @@ const CartItemSchema = new Schema({
   timestamps: true
 })
 
-const CartItem = models.CartItem || model('CartItem', CartItemSchema)
-export default CartItem
-export { CartItemSchema }
+const CartItemModel = models.CartItem || model('CartItem', CartItem)
+export default CartItemModel
+export { CartItem }
