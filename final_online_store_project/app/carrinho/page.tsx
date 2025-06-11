@@ -62,8 +62,22 @@ export default function CartPage() {
 
   // Função para obter estoque disponível de um produto
   const getAvailableStock = (productId: string) => {
+    // Primeiro, tentar buscar da lista de produtos (mais atualizada)
     const product = products.find(p => p.id === productId)
-    return product?.availableQuantity ?? 0
+    if (product && typeof product.availableQuantity === 'number') {
+      return product.availableQuantity
+    }
+    
+    // Se não encontrou na lista de produtos ou se estiver carregando,
+    // usar os dados do item do carrinho como fallback
+    const cartItem = items.find(item => item.id === productId)
+    if (cartItem && typeof cartItem.availableQuantity === 'number') {
+      return cartItem.availableQuantity
+    }
+    
+    // Se não conseguiu obter de lugar nenhum, retornar um valor alto
+    // para não bloquear a funcionalidade enquanto carrega
+    return 999
   }
 
   // Função para incrementar quantidade com validação otimizada
@@ -75,7 +89,8 @@ export default function CartPage() {
     updateQuantity(item.id, item.quantidade + 1)
     
     // Verificação básica de estoque - mostra aviso se necessário
-    if (currentQuantityInCart + 1 >= availableStock) {
+    // Só mostrar aviso se o estoque foi carregado (< 999) e realmente atingiu o limite
+    if (availableStock < 999 && currentQuantityInCart + 1 >= availableStock) {
       toast({
         title: "Atenção",
         description: `Você está próximo do limite de estoque (${availableStock} ${availableStock === 1 ? 'unidade' : 'unidades'} disponíveis).`,
@@ -474,7 +489,10 @@ export default function CartPage() {
           <div className="space-y-4">
             {items.map((item) => {
               const availableStock = getAvailableStock(item.id)
-              const isMaxQuantity = item.quantidade >= availableStock
+              // Só mostrar "quantidade máxima atingida" se:
+              // 1. O estoque disponível é um número válido e menor que 999 (dados reais carregados)
+              // 2. A quantidade no carrinho é maior ou igual ao estoque disponível
+              const isMaxQuantity = availableStock < 999 && item.quantidade >= availableStock
               
               return (
               <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
@@ -507,7 +525,7 @@ export default function CartPage() {
                     variant="outline" 
                     size="icon" 
                     onClick={() => handleIncrementQuantity(item)}
-                    disabled={isMaxQuantity}
+                    disabled={availableStock < 999 && isMaxQuantity}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
