@@ -22,6 +22,37 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
+// Utility function to retry cart operations that might encounter version conflicts
+async function retryCartOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 100
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: any) {
+      // If it's a version error or connection error, retry
+      const isRetryableError = 
+        error.message?.includes('Version') ||
+        error.message?.includes('version') ||
+        error.message?.includes('conflict') ||
+        error.status === 503 ||
+        error.status === 502 ||
+        (attempt < maxRetries && !error.message?.includes('Estoque'))
+      
+      if (isRetryableError && attempt < maxRetries) {
+        // Exponential backoff with jitter
+        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 100
+        await new Promise(resolve => setTimeout(resolve, delay))
+        continue
+      }
+      throw error
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
 export function CartProvider({ children, onProductUpdate }: { children: ReactNode; onProductUpdate?: () => void }) {
   const [items, setItems] = useState<CartItem[]>([])
   const { isAuthenticated } = useAuth()
@@ -128,7 +159,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
   }
 
   const saveToDatabase = async (productId: string, quantity: number, isUpdate = false) => {
-    try {
+    return await retryCartOperation(async () => {
       const token = localStorage.getItem('token')
       if (!token) return false
 
@@ -150,17 +181,15 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         if (response.status === 400 && errorData.message?.includes('Estoque')) {
           throw new Error(errorData.message)
         }
-        return false
+        
+        // Para outros erros, incluir status para retry logic
+        const error = new Error(errorData.message || 'Erro na operação')
+        ;(error as any).status = response.status
+        throw error
       }
 
       return true
-    } catch (error) {
-      // Re-throw para que possa ser capturado pelo addItem e mostrado ao usuário
-      if (error instanceof Error && error.message.includes('Estoque')) {
-        throw error
-      }
-      return false
-    }
+    })
   }
 
   const addItem = async (produto: Produto, quantidade: number = 1): Promise<boolean> => {
@@ -223,9 +252,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       // REMOÇÃO INSTANTÂNEA NO FRONTEND
       setItems((prevItems) => prevItems.filter((item) => item.id !== produtoId))
 
-      // Sincronizar com backend imediatamente (remoção é ação menos frequente)
+      // Sincronizar com backend com retry logic
       try {
-        await saveToDatabase(produtoId, 0, true)
+        await retryCartOperation(async () => {
+          await saveToDatabase(produtoId, 0, true)
+        })
       } catch (error) {
         console.warn('Erro ao remover item do backend:', error)
         // Não fazer rollback para remoções, pois é preferível manter removido localmente
@@ -275,18 +306,26 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         return
       }
 
-      // Limpar carrinho na database
-      const token = localStorage.getItem('token')
-      if (token) {
-        await fetch('/api/users/me/cart', {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
+      // Limpar carrinho na database com retry logic
+      await retryCartOperation(async () => {
+        const token = localStorage.getItem('token')
+        if (token) {
+          const response = await fetch('/api/users/me/cart', {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          
+          if (!response.ok) {
+            const error = new Error('Erro ao cancelar carrinho')
+            ;(error as any).status = response.status
+            throw error
           }
-        })
-      }
+        }
+      })
     } catch (error) {
-      // Silent error handling
+      console.warn('Erro ao cancelar carrinho:', error)
     } finally {
       // Limpar carrinho local mesmo se houver erro na API
       setItems([])
@@ -315,18 +354,26 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       await Promise.all(promises)
 
-      // Limpar carrinho na database
-      const token = localStorage.getItem('token')
-      if (token) {
-        await fetch('/api/users/me/cart', {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
+      // Limpar carrinho na database com retry logic
+      await retryCartOperation(async () => {
+        const token = localStorage.getItem('token')
+        if (token) {
+          const response = await fetch('/api/users/me/cart', {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          
+          if (!response.ok) {
+            const error = new Error('Erro ao limpar carrinho')
+            ;(error as any).status = response.status
+            throw error
           }
-        })
-      }
+        }
+      })
     } catch (error) {
-      // Silent error handling
+      console.warn('Erro ao limpar carrinho:', error)
     } finally {
       // Limpar carrinho local mesmo se houver erro na API
       setItems([])
