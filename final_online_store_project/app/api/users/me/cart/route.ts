@@ -32,7 +32,16 @@ export const GET = createApiHandler(async ({ userId }) => {
     return createErrorResponse('Usuário não encontrado', 404)
   }
 
-  return createSuccessResponse({ cart: user.cart })
+  // Transform cart items to ensure image URLs are correctly formatted
+  const transformedCart = user.cart.map((item: any) => ({
+    ...item.toObject(),
+    product: {
+      ...item.product.toObject(),
+      image: item.product.image ? `/api/images/${item.product.image}` : '/placeholder.jpg?height=300&width=300'
+    }
+  }))
+
+  return createSuccessResponse({ cart: transformedCart })
 }, { requireAuth: true })
 
 export const POST = createApiHandler(async ({ req, userId }) => {

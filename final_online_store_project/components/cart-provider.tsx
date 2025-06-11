@@ -116,7 +116,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
           description: item.product.description,
           price: item.product.price,
           category: item.product.category,
-          image: item.product.image,
+          image: item.product.image, // A API já deve retornar a URL correta
           inStock: item.product.inStock,
           availableQuantity: item.product.availableQuantity,
           sold: item.product.sold,
