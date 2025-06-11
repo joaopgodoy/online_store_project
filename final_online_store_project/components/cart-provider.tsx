@@ -25,6 +25,9 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children, onProductUpdate }: { children: ReactNode; onProductUpdate?: () => void }) {
   const [items, setItems] = useState<CartItem[]>([])
   const { isAuthenticated } = useAuth()
+  
+  // Debounce para sincronização com backend
+  const [syncTimeouts, setSyncTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
 
   // Carregar carrinho quando o componente montar
   useEffect(() => {
@@ -43,6 +46,13 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       localStorage.setItem("cart", JSON.stringify(items))
     }
   }, [items, isAuthenticated])
+
+  // Limpar timeouts quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      Object.values(syncTimeouts).forEach(timeout => clearTimeout(timeout))
+    }
+  }, [syncTimeouts])
 
   const loadCartFromLocalStorage = () => {
     const savedCart = localStorage.getItem("cart")
@@ -86,6 +96,35 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
     } catch (error) {
       // Silent error handling - cart will remain in current state
     }
+  }
+
+  // Função para sincronizar com backend usando debounce
+  const debouncedSync = (productId: string, quantity: number, isUpdate = false, delay = 500) => {
+    // Cancelar timeout anterior se existir
+    if (syncTimeouts[productId]) {
+      clearTimeout(syncTimeouts[productId])
+    }
+
+    // Criar novo timeout
+    const newTimeout = setTimeout(async () => {
+      try {
+        await saveToDatabase(productId, quantity, isUpdate)
+        // Limpar timeout do state após execução
+        setSyncTimeouts(prev => {
+          const newTimeouts = { ...prev }
+          delete newTimeouts[productId]
+          return newTimeouts
+        })
+      } catch (error) {
+        console.warn('Erro na sincronização com backend:', error)
+      }
+    }, delay)
+
+    // Salvar timeout no state
+    setSyncTimeouts(prev => ({
+      ...prev,
+      [productId]: newTimeout
+    }))
   }
 
   const saveToDatabase = async (productId: string, quantity: number, isUpdate = false) => {
@@ -181,11 +220,16 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
         return
       }
 
-      // Atualizar na database (remover do carrinho)
-      await saveToDatabase(produtoId, 0, true)
-
-      // Remover do carrinho local
+      // REMOÇÃO INSTANTÂNEA NO FRONTEND
       setItems((prevItems) => prevItems.filter((item) => item.id !== produtoId))
+
+      // Sincronizar com backend imediatamente (remoção é ação menos frequente)
+      try {
+        await saveToDatabase(produtoId, 0, true)
+      } catch (error) {
+        console.warn('Erro ao remover item do backend:', error)
+        // Não fazer rollback para remoções, pois é preferível manter removido localmente
+      }
     } catch (error) {
       // Silent error handling
       // Mesmo com erro na API, remove do carrinho local para não travar a UX
@@ -209,28 +253,18 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
       const currentItem = items.find(item => item.id === produtoId)
       if (!currentItem) return
 
-      // Tentar atualizar na database (que fará a validação de estoque)
-      try {
-        const success = await saveToDatabase(produtoId, novaQuantidade, true)
-        if (!success) {
-          // Se falhou, não atualizar o carrinho local
-          return
-        }
-      } catch (stockError) {
-        // Se é erro de estoque, não atualizar e possivelmente notificar
-        console.warn('Erro de estoque ao atualizar quantidade:', stockError)
-        return
-      }
-
-      // Atualizar quantidade no carrinho local
+      // ATUALIZAÇÃO INSTANTÂNEA NO FRONTEND
       setItems((prevItems) => 
         prevItems.map((item) => 
           item.id === produtoId ? { ...item, quantidade: novaQuantidade } : item
         )
       )
+
+      // Sincronizar com backend usando debounce (500ms de delay)
+      debouncedSync(produtoId, novaQuantidade, true)
+
     } catch (error) {
       // Silent error handling
-      // Em caso de erro, não atualizar para evitar inconsistências
     }
   }
 

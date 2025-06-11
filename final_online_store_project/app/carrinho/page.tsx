@@ -66,21 +66,22 @@ export default function CartPage() {
     return product?.availableQuantity ?? 0
   }
 
-  // Função para incrementar quantidade com validação de estoque
+  // Função para incrementar quantidade com validação otimizada
   const handleIncrementQuantity = (item: any) => {
     const availableStock = getAvailableStock(item.id)
     const currentQuantityInCart = item.quantidade
     
-    if (currentQuantityInCart >= availableStock) {
-      toast({
-        title: "Estoque insuficiente",
-        description: `Quantidade máxima disponível atingida (${availableStock} ${availableStock === 1 ? 'unidade' : 'unidades'}).`,
-        variant: "destructive"
-      })
-      return
-    }
-    
+    // Atualização imediata primeiro
     updateQuantity(item.id, item.quantidade + 1)
+    
+    // Verificação básica de estoque - mostra aviso se necessário
+    if (currentQuantityInCart + 1 >= availableStock) {
+      toast({
+        title: "Atenção",
+        description: `Você está próximo do limite de estoque (${availableStock} ${availableStock === 1 ? 'unidade' : 'unidades'} disponíveis).`,
+        variant: "default"
+      })
+    }
   }
 
   // Buscar métodos de pagamento quando abrir o checkout
