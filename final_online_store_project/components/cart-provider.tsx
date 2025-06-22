@@ -62,6 +62,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   // Carregar carrinho quando o componente montar
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return
+    }
+
     if (isAuthenticated) {
       loadCartFromDatabase()
     } else {
@@ -73,6 +78,11 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   // Salvar carrinho no localStorage quando mudar (apenas para usuários não autenticados)
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return
+    }
+
     if (!isAuthenticated) {
       localStorage.setItem("cart", JSON.stringify(items))
     }
@@ -86,6 +96,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
   }, [syncTimeouts])
 
   const loadCartFromLocalStorage = () => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
     const savedCart = localStorage.getItem("cart")
     if (savedCart) {
       try {
@@ -98,6 +112,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   const loadCartFromDatabase = async () => {
     try {
+      if (typeof window === 'undefined') {
+        return
+      }
+
       const token = localStorage.getItem('token')
       if (!token) return
 
@@ -160,6 +178,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
   const saveToDatabase = async (productId: string, quantity: number, isUpdate = false) => {
     return await retryCartOperation(async () => {
+      if (typeof window === 'undefined') {
+        return false
+      }
+
       const token = localStorage.getItem('token')
       if (!token) return false
 
@@ -308,6 +330,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       // Limpar carrinho na database com retry logic
       await retryCartOperation(async () => {
+        if (typeof window === 'undefined') {
+          return
+        }
+
         const token = localStorage.getItem('token')
         if (token) {
           const response = await fetch('/api/users/me/cart', {
@@ -356,6 +382,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
 
       // Limpar carrinho na database com retry logic
       await retryCartOperation(async () => {
+        if (typeof window === 'undefined') {
+          return
+        }
+
         const token = localStorage.getItem('token')
         if (token) {
           const response = await fetch('/api/users/me/cart', {

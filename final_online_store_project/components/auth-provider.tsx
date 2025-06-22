@@ -33,6 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      setIsInitialized(true)
+      return
+    }
+
     const savedToken = localStorage.getItem("token")
     const savedUser = localStorage.getItem("user")
     
@@ -76,7 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const userData = response.data
       setUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(userData))
+      }
     } catch (error) {
       // Se falhou ao buscar dados do usuário, fazer logout
       console.error("Erro ao buscar dados do usuário:", error)
@@ -84,8 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Limpar completamente o estado de autenticação
       setUser(null)
       setToken(null)
-      localStorage.removeItem("user")
-      localStorage.removeItem("token")
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("user")
+        localStorage.removeItem("token")
+      }
       
       // Remover headers de autenticação
       delete api.defaults.headers.common['Authorization']
@@ -105,8 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData)
       setToken(authToken)
       
-      localStorage.setItem("user", JSON.stringify(userData))
-      localStorage.setItem("token", authToken)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(userData))
+        localStorage.setItem("token", authToken)
+      }
       
       // Configurar o token no axios
       api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
@@ -134,7 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const userData = response.data
       setUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(userData))
+      }
     } catch (error) {
       console.error("Erro ao atualizar dados do usuário:", error)
       // Se houver erro de autenticação, fazer logout
@@ -145,11 +159,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    // Criar um array com todas as keys do localStorage que queremos remover
-    const keysToRemove = ["user", "token", "cart"];
-    
-    // Remover todos os itens
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    // Only interact with localStorage on client side
+    if (typeof window !== 'undefined') {
+      // Criar um array com todas as keys do localStorage que queremos remover
+      const keysToRemove = ["user", "token", "cart"];
+      
+      // Remover todos os itens
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
     
     // Limpar axios e todas as suas instâncias
     delete axios.defaults.headers.common['Authorization'];

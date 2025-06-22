@@ -25,6 +25,7 @@ export default function Header() {
     const [isMobile, setIsMobile] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [hasMounted, setHasMounted] = useState(false)
 
     // Função para verificar se o usuário é admin
     const isAdmin = (user: any) => {
@@ -37,14 +38,21 @@ export default function Header() {
         router.push('/perfil')
     }
 
-    // Calcular quantidade total de itens no carrinho apenas se autenticado
-    const cartItemCount = isAuthenticated ? items.reduce(
+    // Calcular quantidade total de itens no carrinho apenas se autenticado e mounted
+    const cartItemCount = hasMounted && isAuthenticated ? items.reduce(
         (total, item) => total + item.quantidade,
         0
     ) : 0
 
     // Verificar o tamanho da tela para responsividade
     useEffect(() => {
+        // Only run on client side
+        if (typeof window === 'undefined') {
+            return
+        }
+
+        setHasMounted(true)
+
         const checkIfMobile = () => {
             setIsMobile(window.innerWidth < 768)
         }
