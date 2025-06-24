@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ShoppingCart } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false)
   const { addItem, items } = useCart()
   const { isAuthenticated } = useAuth()
+  const router = useRouter()
   const toasts = useCommonToasts()
 
   // Calculate available quantity considering items already in cart
@@ -44,6 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     if (!isAuthenticated) {
       toasts.loginRequired()
+      router.push('/login')
       return
     }
 
