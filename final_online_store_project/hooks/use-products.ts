@@ -12,23 +12,23 @@ export function useProducts() {
     try {
       setLoading(true)
       const response = await fetch('/api/products', {
-        cache: 'no-store' // Garantir que sempre busque dados atualizados
+        cache: 'no-store' // Ensure always fetches updated data
       })
       
       if (!response.ok) {
-        throw new Error('Erro ao carregar produtos')
+        throw new Error('Error loading products')
       }
       
       const data = await response.json()
       setProducts(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
   }, [])
 
-  // Função para atualizar um produto específico sem recarregar toda a lista
+  // Function to update a specific product without reloading the entire list
   const updateProduct = useCallback(async (productId: string) => {
     try {
       const response = await fetch(`/api/products/${productId}`, {
@@ -42,7 +42,7 @@ export function useProducts() {
         ))
       }
     } catch (err) {
-      console.error('Erro ao atualizar produto:', err)
+      console.error('Error updating product:', err)
     }
   }, [])
 

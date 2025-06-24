@@ -25,18 +25,18 @@ export const GET = createApiHandler(async ({ params }) => {
 export const PUT = createApiHandler(async ({ req, params }) => {
   const { name, description, price, image, category, inStock, availableQuantity } = await req.json()
   
-  // Validar campos obrigatórios
+  // Validate required fields
   if (!name || !description || price === undefined || !category || availableQuantity === undefined) {
     return createErrorResponse('Todos os campos obrigatórios devem ser preenchidos', 400)
   }
   
-  // Validar preço mínimo
+  // Validate minimum price
   const numPrice = Number(price)
   if (isNaN(numPrice) || numPrice < 0.01) {
     return createErrorResponse('O preço deve ser de pelo menos R$ 0,01', 400)
   }
   
-  // Verificar duplicatas
+  // Check for duplicates
   const existingProduct = await Product.findOne({ name, _id: { $ne: params!.id } })
   if (existingProduct) {
     return createErrorResponse('Já existe um produto com esse nome', 400)
@@ -64,7 +64,7 @@ export const PUT = createApiHandler(async ({ req, params }) => {
     finalImage = image
   }
   
-  // Determinar status baseado no estoque
+  // Determine status based on stock
   const finalInStock = Number(availableQuantity) > 0 ? (inStock !== undefined ? inStock : true) : false
   
   const updateData = {

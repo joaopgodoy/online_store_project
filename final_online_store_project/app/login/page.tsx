@@ -28,10 +28,10 @@ export default function LoginPage() {
   const [senhaError, setSenhaError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // redireciona se já estiver logado
+  // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      // Todos os usuários, incluindo administradores, são redirecionados para a página de perfil
+      // All users, including administrators, are redirected to the profile page
       router.push("/perfil")
     }
   }, [isAuthenticated, router])
@@ -55,7 +55,7 @@ export default function LoginPage() {
         description: "Você foi autenticado com sucesso.",
       })
       
-      // O redirecionamento será feito pelo useEffect que monitora isAuthenticated
+      // The redirection will be handled by the useEffect monitoring isAuthenticated
     } catch (error) {
       toast({
         title: "Erro no login",

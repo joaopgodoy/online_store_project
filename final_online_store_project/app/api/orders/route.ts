@@ -5,15 +5,15 @@ import User from "@/models/User"
 export const POST = createApiHandler(async ({ req, userId }) => {
   const { items, total, paymentMethod } = await req.json()
 
-  // Validar dados do pedido
+  // Validate order data
   if (!items || !items.length || !total || !paymentMethod) {
     return createErrorResponse("Dados do pedido incompletos", 400)
   }
 
-  // Gerar código de retirada único
+  // Generate unique pickup code
   const pickupCode = Math.floor(1000 + Math.random() * 9000).toString()
 
-  // Criar o pedido
+  // Create the order
   const order = await Order.create({
     user: userId,
     items,
@@ -23,7 +23,7 @@ export const POST = createApiHandler(async ({ req, userId }) => {
     status: 'processing'
   })
 
-  // Adicionar o pedido ao array de pedidos do usuário
+  // Add order to user's orders array
   await User.findByIdAndUpdate(
     userId,
     { $push: { orders: order._id } }

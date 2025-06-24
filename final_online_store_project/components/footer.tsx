@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth-provider"
 export default function Footer() {
   const { isAuthenticated, user } = useAuth()
   
-  // Função para verificar se o usuário é admin
+  // Function to check if user is admin
   const isAdmin = (user: any) => {
     return user && user.admin === true
   }

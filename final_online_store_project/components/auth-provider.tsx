@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Criar uma instância do axios com configuração base
+// Create an axios instance with base configuration
 const api = axios.create({
   baseURL: typeof window !== 'undefined' ? window.location.origin : '',
 })
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (savedToken && savedUser) {
       try {
-        // Verificar se o token parece válido (formato básico)
+        // Check if token looks valid (basic format)
         if (typeof savedToken !== 'string' || savedToken.split('.').length !== 3) {
           throw new Error('Token inválido');
         }
@@ -54,15 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(savedToken)
         setUser(userData)
         
-        // Configurar o token no axios
+        // Configure token in axios
         api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
         axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
         
-        // Marcar como inicializado - não buscar dados do servidor automaticamente
+        // Mark as initialized - don't fetch server data automatically
         setIsInitialized(true)
       } catch (error) {
         console.error("Erro ao restaurar a sessão:", error)
-        logout() // Limpar a sessão inválida
+        logout() // Clean invalid session
         setIsInitialized(true)
       }
     } else {
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           'Authorization': `Bearer ${authToken}`
         },
-        // Adicionar timeout para evitar requisições pendentes
+        // Add timeout to avoid pending requests
         timeout: 5000
       })
       
@@ -86,10 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("user", JSON.stringify(userData))
       }
     } catch (error) {
-      // Se falhou ao buscar dados do usuário, fazer logout
+      // If failed to fetch user data, logout
       console.error("Erro ao buscar dados do usuário:", error)
       
-      // Limpar completamente o estado de autenticação
+      // Completely clear authentication state
       setUser(null)
       setToken(null)
       if (typeof window !== 'undefined') {
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("token")
       }
       
-      // Remover headers de autenticação
+      // Remove authentication headers
       delete api.defaults.headers.common['Authorization']
       delete axios.defaults.headers.common['Authorization']
     }
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("token", authToken)
       }
       
-      // Configurar o token no axios
+      // Configure token in axios
       api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
       axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
       
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Erro ao atualizar dados do usuário:", error)
-      // Se houver erro de autenticação, fazer logout
+      // If there's authentication error, logout
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         logout()
       }
@@ -161,31 +161,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Only interact with localStorage on client side
     if (typeof window !== 'undefined') {
-      // Criar um array com todas as keys do localStorage que queremos remover
+      // Create an array with all localStorage keys we want to remove
       const keysToRemove = ["user", "token", "cart"];
       
-      // Remover todos os itens
+      // Remove all items
       keysToRemove.forEach(key => localStorage.removeItem(key));
     }
     
-    // Limpar axios e todas as suas instâncias
+    // Clear axios and all its instances
     delete axios.defaults.headers.common['Authorization'];
     delete api.defaults.headers.common['Authorization'];
     
-    // Adicionar um interceptor para cancelar requisições futuras
+    // Add an interceptor to cancel future requests
     const interceptorId = axios.interceptors.request.use(
       config => {
-        // Rejeitar todas as requisições até que seja removido
+        // Reject all requests until removed
         return Promise.reject(new Error('Operação cancelada - usuário deslogado'));
       }
     );
     
-    // Após um pequeno delay, remover o interceptor
+    // After a small delay, remove the interceptor
     setTimeout(() => {
       axios.interceptors.request.eject(interceptorId);
     }, 500);
     
-    // Limpar estado de autenticação
+    // Clear authentication state
     setUser(null);
     setToken(null);
   }

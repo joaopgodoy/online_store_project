@@ -32,7 +32,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [senhaError, setSenhaError] = useState('')
 
-  // redireciona se já estiver logado
+  // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
       router.push('/perfil')
@@ -51,7 +51,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validações
+    // Validations
     if (!name || !email || !apartamento || !senha || !confirmaSenha) {
       toast({
         title: "Erro",
@@ -79,7 +79,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // Fazer chamada real para a API
+      // Make real API call
       const response = await axios.post('/api/users', {
         name: name,
         email,
@@ -92,7 +92,7 @@ export default function RegisterPage() {
         description: "Cadastro realizado com sucesso",
       })
 
-      // Redirecionar para login
+      // Redirect to login
       router.push('/login')
       
     } catch (error: any) {
@@ -110,7 +110,7 @@ export default function RegisterPage() {
     }
   }
 
-  // Se já estiver autenticado, redirecionar
+  // If already authenticated, redirect
   if (isAuthenticated) {
     router.push('/perfil')
     return null

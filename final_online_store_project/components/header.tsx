@@ -27,24 +27,24 @@ export default function Header() {
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [hasMounted, setHasMounted] = useState(false)
 
-    // Função para verificar se o usuário é admin
+    // Function to check if user is admin
     const isAdmin = (user: any) => {
         return user && user.admin === true
     }
 
-    // Função para lidar com o clique no botão de perfil
+    // Function to handle profile button click
     const handleProfileClick = (e: React.MouseEvent) => {
         e.preventDefault()
         router.push('/perfil')
     }
 
-    // Calcular quantidade total de itens no carrinho apenas se autenticado e mounted
+    // Calculate total cart items only if authenticated and mounted
     const cartItemCount = hasMounted && isAuthenticated ? items.reduce(
         (total, item) => total + item.quantidade,
         0
     ) : 0
 
-    // Verificar o tamanho da tela para responsividade
+    // Check screen size for responsiveness
     useEffect(() => {
         // Only run on client side
         if (typeof window === 'undefined') {
@@ -65,7 +65,7 @@ export default function Header() {
         }
     }, [])
 
-    // Fechar menu quando mudar de rota
+    // Close menu when route changes
     useEffect(() => {
         setIsMenuOpen(false)
         setIsSearchOpen(false)
@@ -73,7 +73,7 @@ export default function Header() {
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen)
-        // Fechar pesquisa se estiver aberta
+        // Close search if open
         if (isSearchOpen) {
             setIsSearchOpen(false)
         }
@@ -81,7 +81,7 @@ export default function Header() {
 
     const toggleSearch = () => {
         setIsSearchOpen(!isSearchOpen)
-        // Fechar menu se estiver aberto
+        // Close menu if open
         if (isMenuOpen) {
             setIsMenuOpen(false)
         }

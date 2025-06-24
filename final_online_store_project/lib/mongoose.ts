@@ -3,10 +3,10 @@ import mongoose from 'mongoose'
 const MONGODB_URI = process.env.MONGODB_URI as string
 
 if (!MONGODB_URI) {
-  throw new Error('❌ MONGODB_URI não está definida no .env')
+  throw new Error('❌ MONGODB_URI is not defined in .env')
 }
 
-// cache para evitar reconexões no dev
+// cache to avoid reconnections in dev
 let cached = global.mongoose || { conn: null, promise: null }
 
 async function connectDB() {
@@ -22,7 +22,7 @@ async function connectDB() {
   return cached.conn
 }
 
-// definição global pra não recriar no hot reload
+// global definition to avoid recreating on hot reload
 declare global {
   // eslint-disable-next-line no-var
   var mongoose: any

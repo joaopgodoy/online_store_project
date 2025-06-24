@@ -54,7 +54,7 @@ export const POST = createApiHandler(async ({ req, userId }) => {
       return createErrorResponse('Usuário não encontrado', 404)
     }
 
-    // Verificar se o produto existe e tem estoque
+    // Check if product exists and has stock
     const product = await Product.findById(productId)
     if (!product) {
       return createErrorResponse('Produto não encontrado', 404)
@@ -64,7 +64,7 @@ export const POST = createApiHandler(async ({ req, userId }) => {
       return createErrorResponse('Produto indisponível', 400)
     }
 
-    // Verificar se o item já existe no carrinho
+    // Check if item already exists in cart
     const existingItemIndex = user.cart.findIndex((item: any) => 
       item.product.toString() === productId
     )
@@ -72,7 +72,7 @@ export const POST = createApiHandler(async ({ req, userId }) => {
     const currentCartQuantity = existingItemIndex > -1 ? user.cart[existingItemIndex].quantity : 0
     const totalDesiredQuantity = currentCartQuantity + quantity
 
-    // Verificar se há estoque suficiente
+    // Check if there's sufficient stock
     if (product.availableQuantity < totalDesiredQuantity) {
       return NextResponse.json({ 
         message: `Estoque insuficiente. Disponível: ${product.availableQuantity}, já no carrinho: ${currentCartQuantity}`,
@@ -102,7 +102,7 @@ export const PUT = createApiHandler(async ({ req, userId }) => {
       return createErrorResponse('Usuário não encontrado', 404)
     }
 
-    // Verificar estoque apenas se quantidade > 0
+    // Check stock only if quantity > 0
     if (quantity > 0) {
       const product = await Product.findById(productId)
       if (!product) {
@@ -122,12 +122,12 @@ export const PUT = createApiHandler(async ({ req, userId }) => {
     }
 
     if (quantity <= 0) {
-      // Remover item do carrinho
+      // Remove item from cart
       user.cart = user.cart.filter((item: any) => 
         item.product.toString() !== productId
       )
     } else {
-      // Atualizar quantidade
+      // Update quantity
       const itemIndex = user.cart.findIndex((item: any) => 
         item.product.toString() === productId
       )

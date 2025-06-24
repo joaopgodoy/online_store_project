@@ -17,7 +17,7 @@ interface CartContextType {
   cancelCart: () => void
   total: number
   totalFixed: number
-  onProductUpdate?: () => void // Callback para refresh de produtos
+  onProductUpdate?: () => void // Callback for product refresh
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -57,10 +57,10 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
   const [items, setItems] = useState<CartItem[]>([])
   const { isAuthenticated } = useAuth()
   
-  // Debounce para sincronização com backend
+  // Debounce for backend synchronization
   const [syncTimeouts, setSyncTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
 
-  // Carregar carrinho quando o componente montar
+  // Load cart when component mounts
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') {
@@ -70,7 +70,7 @@ export function CartProvider({ children, onProductUpdate }: { children: ReactNod
     if (isAuthenticated) {
       loadCartFromDatabase()
     } else {
-      // Limpar carrinho local quando não estiver autenticado
+      // Clear local cart when not authenticated
       setItems([])
       localStorage.removeItem("cart")
     }

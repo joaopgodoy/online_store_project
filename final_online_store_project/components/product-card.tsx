@@ -70,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         })
       }
     } catch (error) {
-      // Capturar erros específicos de estoque
+      // Capture specific stock errors
       if (error instanceof Error && error.message.includes('Estoque')) {
         toast({
           title: "Estoque insuficiente",
