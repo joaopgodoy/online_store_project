@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { formatCardNumber, formatCardExpiry, formatCardCvc } from "@/lib/product-utils"
 import {
   Dialog,
   DialogContent,
@@ -445,28 +446,6 @@ export default function ProfilePage() {
   }
 
   // Funções de formatação para os campos do cartão
-  const formatCardNumber = (value: string) => {
-    // Remove tudo que não é número
-    const numbers = value.replace(/\D/g, '')
-    // Adiciona espaços a cada 4 dígitos
-    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ').trim()
-  }
-
-  const formatExpiry = (value: string) => {
-    // Remove tudo que não é número
-    const numbers = value.replace(/\D/g, '')
-    // Adiciona barra após 2 dígitos
-    if (numbers.length >= 2) {
-      return numbers.slice(0, 2) + '/' + numbers.slice(2, 4)
-    }
-    return numbers
-  }
-
-  const formatCvc = (value: string) => {
-    // Remove tudo que não é número e limita a 4 dígitos
-    return value.replace(/\D/g, '').slice(0, 4)
-  }
-
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCardNumber(e.target.value)
     // Limita a 19 caracteres (16 números + 3 espaços)
@@ -476,12 +455,12 @@ export default function ProfilePage() {
   }
 
   const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatExpiry(e.target.value)
+    const formatted = formatCardExpiry(e.target.value)
     setCardExpiry(formatted)
   }
 
   const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCvc(e.target.value)
+    const formatted = formatCardCvc(e.target.value)
     setCardCvc(formatted)
   }
 

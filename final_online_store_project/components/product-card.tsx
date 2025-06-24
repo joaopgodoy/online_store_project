@@ -3,12 +3,21 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, ShoppingCart } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import QuantityControls from "@/components/ui/quantity-controls"
 import { useCart } from "@/components/cart-provider"
 import { useAuth } from "@/components/auth-provider"
-import { useToast } from "@/hooks/use-toast"
+import { useCommonToasts } from "@/lib/toast-utils"
+import { 
+  calculateAvailableQuantity, 
+  formatStockText, 
+  formatCartQuantityText,
+  formatPrice,
+  getProductImage,
+  isProductOutOfStock
+} from "@/lib/product-utils"
 import type { Produto } from "@/lib/types"
 
 interface ProductCardProps {
@@ -20,12 +29,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false)
   const { addItem, items } = useCart()
   const { isAuthenticated } = useAuth()
-  const { toast } = useToast()
+  const toasts = useCommonToasts()
 
   // Calculate available quantity considering items already in cart
-  const itemInCart = items.find(item => item.id === product.id)
-  const quantityInCart = itemInCart?.quantidade || 0
-  const availableQuantity = Math.max(0, product.availableQuantity - quantityInCart)
+  const availableQuantity = calculateAvailableQuantity(product, items)
 
   if (!product) {
     return null
@@ -36,20 +43,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation()
 
     if (!isAuthenticated) {
-      toast({
-        title: "Login necessário",
-        description: "Faça login para adicionar produtos ao carrinho.",
-        variant: "destructive"
-      })
+      toasts.loginRequired()
       return
     }
 
-    if (!product.inStock || availableQuantity < quantity) {
-      toast({
-        title: "Produto indisponível",
-        description: "Não há estoque suficiente para a quantidade solicitada",
-        variant: "destructive",
-      })
+    if (isProductOutOfStock(product, availableQuantity) || availableQuantity < quantity) {
+      toasts.productUnavailable("Não há estoque suficiente para a quantidade solicitada")
       return
     }
 
@@ -57,33 +56,18 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       const success = await addItem(product, quantity)
       if (success) {
-        toast({
-          title: "Produto adicionado ao carrinho",
-          description: `${quantity}x ${product.name} foi adicionado ao seu carrinho.`,
-        })
+        toasts.productAdded(quantity, product.name)
         setQuantity(1) // Reset quantity after successful add
       } else {
-        toast({
-          title: "Erro ao adicionar produto",
-          description: "Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.",
-          variant: "destructive",
-        })
+        toasts.addToCartError("Não foi possível adicionar o produto ao carrinho. Verifique o estoque disponível.")
       }
     } catch (error) {
       // Capture specific stock errors
       if (error instanceof Error && error.message.includes('Estoque')) {
-        toast({
-          title: "Estoque insuficiente",
-          description: error.message,
-          variant: "destructive"
-        })
+        toasts.stockInsufficient(error.message)
       } else {
         const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
-        toast({
-          title: "Erro ao adicionar produto",
-          description: errorMessage,
-          variant: "destructive",
-        })
+        toasts.addToCartError(errorMessage)
       }
     } finally {
       setIsAdding(false)
@@ -111,7 +95,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Link href={`/produtos/${product.id}`}>
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={product.image}
+            src={getProductImage(product)}
             alt={product.name}
             fill
             className="object-cover transition-transform group-hover:scale-105"
@@ -130,7 +114,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-lg">R$ {product.price.toFixed(2)}</span>
+            <span className="font-semibold text-lg">{formatPrice(product.price)}</span>
             <Badge variant={product.inStock ? "default" : "destructive"}>
               {product.inStock ? "Disponível" : "Indisponível"}
             </Badge>
@@ -138,10 +122,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           
           {/* Stock Information */}
           <div className="text-sm text-muted-foreground">
-            Estoque: {availableQuantity} {availableQuantity === 1 ? 'unidade disponível' : 'unidades disponíveis'}
-            {quantityInCart > 0 && (
+            Estoque: {formatStockText(availableQuantity)}
+            {items.find(item => item.id === product.id) && (
               <span className="ml-2 text-xs text-orange-600">
-                ({quantityInCart} no carrinho)
+                {formatCartQuantityText(items.find(item => item.id === product.id)?.quantidade || 0)}
               </span>
             )}
           </div>
@@ -152,27 +136,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             {/* Quantity Selector */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Quantidade:</span>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={decrementQuantity}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                <span className="text-sm font-medium min-w-8 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={incrementQuantity}
-                  disabled={quantity >= availableQuantity}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
+              <QuantityControls
+                quantity={quantity}
+                onIncrement={incrementQuantity}
+                onDecrement={decrementQuantity}
+                maxQuantity={availableQuantity}
+                size="sm"
+              />
             </div>
 
             {/* Add to Cart Button */}

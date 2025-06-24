@@ -2,16 +2,19 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, Loader2 } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import LoadingSpinner from '@/components/ui/loading-spinner'
 import ProductCard from '@/components/product-card'
+import { formatSearchResultsText } from '@/lib/product-utils'
 import type { Produto } from '@/lib/types'
 
 function PesquisaContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [executedQuery, setExecutedQuery] = useState(searchParams.get('q') || '') // Track the last executed search
   const [products, setProducts] = useState<Produto[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
@@ -47,6 +50,7 @@ function PesquisaContent() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
+      setExecutedQuery(query.trim()) // Update the executed query
       router.push(`/pesquisa?q=${encodeURIComponent(query)}`)
       searchProducts(query)
     }
@@ -61,13 +65,14 @@ function PesquisaContent() {
     const queryParam = searchParams.get('q')
     if (queryParam) {
       setQuery(queryParam)
+      setExecutedQuery(queryParam) // Set the executed query as well
       searchProducts(queryParam)
     }
   }, [searchParams, searchProducts])
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
         {/* Search Form */}
         <form onSubmit={handleSearch} className="mb-8">
           <div className="flex gap-2">
@@ -84,7 +89,7 @@ function PesquisaContent() {
             </div>
             <Button type="submit" disabled={loading}>
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <LoadingSpinner size="sm" />
               ) : (
                 'Pesquisar'
               )}
@@ -95,8 +100,7 @@ function PesquisaContent() {
         {/* Results */}
         {loading && (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-600">Pesquisando produtos...</span>
+            <LoadingSpinner text="Pesquisando produtos..." />
           </div>
         )}
 
@@ -106,9 +110,9 @@ function PesquisaContent() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Resultados da pesquisa
               </h1>
-              {query && (
+              {executedQuery && (
                 <p className="text-gray-600 mt-1">
-                  {products.length} resultado{products.length !== 1 ? 's' : ''} encontrado{products.length !== 1 ? 's' : ''} para "{query}"
+                  {formatSearchResultsText(products.length, executedQuery)}
                 </p>
               )}
             </div>
@@ -124,7 +128,7 @@ function PesquisaContent() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -155,8 +159,7 @@ export default function PesquisaPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-600">Carregando...</span>
+            <LoadingSpinner text="Carregando..." />
           </div>
         </div>
       </div>
